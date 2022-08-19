@@ -1,0 +1,24 @@
+@font-face {
+    font-family: 'Signature';
+    src: local(''), url('/public/fonts/signature/signature.ttf') format('ttf');
+    font-weight: normal;
+    font-style: normal;
+}
+
+:root {
+    --font-body: 'Segoe UI', -apple-system, Roboto, Helvetica, Arial, sans-serif,
+        Apple Color Emoji, Segoe UI Emoji;
+}
+
+body {
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background-repeat: no-repeat;
+    min-height: 100vh;
+    min-height: calc(100vh - env(safe-area-inset-bottom));
+}
+
+.signature {
+    font-family: 'Signature';
+}
