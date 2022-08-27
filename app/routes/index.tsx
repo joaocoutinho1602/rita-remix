@@ -1,5 +1,9 @@
 import { useState } from 'react';
 
+import { json } from '@remix-run/node';
+import type { LoaderArgs } from '@remix-run/node';
+// import { useLoaderData } from '@remix-run/react';
+
 import { Affix, Switch, Transition } from '@mantine/core';
 import {
     useMediaQuery,
@@ -13,11 +17,18 @@ import { cv, services, socials } from 'public/utils/data';
 
 import { ContactModal, CustomMap, List, SocialLink } from '~/components';
 
+export async function loader(args: LoaderArgs) {
+    return json({ defaultWidth: 1234 });
+}
+
 export default function Index() {
+    // const data = useLoaderData<typeof loader>();
     const [toggle, setToggle] = useState(false);
 
     const isDesktop = useMediaQuery('(min-width: 1224px)', false);
+
     const { width } = useViewportSize();
+
     const [scroll, scrollTo] = useWindowScroll();
 
     function doToggle(value: boolean | undefined = undefined): void {
@@ -27,43 +38,23 @@ export default function Index() {
     return (
         <div>
             {isDesktop ? (
-                <div>
+                <div style={classes.desktop.container}>
                     <div style={classes.desktop.headerNameContainer}>
                         <div style={classes.desktop.headerName}>Rita</div>
                         <div style={classes.desktop.headerName}>Meira</div>
                     </div>
                     <div style={classes.desktop.headerPhotoCVContainer}>
-                        <div style={classes.desktop.headerPhotoContainer}>
-                            <img
-                                style={classes.desktop.headerPhoto}
-                                height={25 * 16}
-                                width={25 * 16}
-                                src={Portrait}
-                                alt="Rita Meira"
-                            />
-                        </div>
-                        <div
-                            style={
-                                classes.desktop.headerPersonalCVButtonContainer
-                            }
-                        >
-                            <div
-                                style={
-                                    classes.desktop.headerPersonalCVContainer
-                                }
-                            >
-                                <div
-                                    style={
-                                        classes.desktop.headerPersonalTextBold
-                                    }
-                                >
-                                    Consultas Presenciais ou Online
-                                </div>
-                                <div
-                                    style={
-                                        classes.desktop.headerPersonalTextBold
-                                    }
-                                >
+                        <img
+                            style={classes.desktop.headerPhoto}
+                            height={400}
+                            width={400}
+                            src={Portrait}
+                            alt="Rita Meira"
+                        />
+                        <div style={classes.desktop.headerCVButtonContainer}>
+                            <div style={classes.desktop.headerTextBold}>
+                                Consultas Presenciais ou Online
+                                <div style={classes.desktop.locationContainer}>
                                     <img
                                         alt="pin"
                                         src="/images/svg/location.svg"
@@ -72,110 +63,93 @@ export default function Index() {
                                     />
                                     Viana do Castelo / Braga
                                 </div>
-                                <div
-                                    style={
-                                        classes.desktop.headerPersonalTextBold
-                                    }
-                                >
-                                    Tratamento Psicológico com Jovens e Adultos
-                                </div>
-                                <div
-                                    style={
-                                        classes.desktop.headerPersonalTextBold
-                                    }
-                                >
-                                    Acompanhamento Individual e de Casal
-                                </div>
+                                Tratamento Psicológico com Jovens e Adultos
                                 <br />
-                                <div style={classes.desktop.headerCVList}>
-                                    <List
-                                        data={cv}
-                                        textStyles={
-                                            classes.desktop.headerCVText
-                                        }
-                                    />
-                                </div>
+                                Acompanhamento Individual e de Casal
                             </div>
-                            <ContactModal />
+                            <div style={classes.desktop.headerCVList}>
+                                <List data={cv} />
+                            </div>
+                            <div style={classes.desktop.contactButtonContainer}>
+                                <ContactModal
+                                    buttonStyles={
+                                        classes.desktop.contactModalButton
+                                    }
+                                />
+                            </div>
                         </div>
                     </div>
                     <div style={classes.desktop.servicesContainer}>
                         <div style={classes.desktop.servicesHeader}>
                             Serviços
                         </div>
-                        <div style={classes.desktop.servicesListContainer}>
-                            {services.map(
-                                ({ title, image, descriptions }, index) => (
-                                    <div
-                                        key={index}
-                                        style={
-                                            classes.desktop
-                                                .servicesListItemContainer
-                                        }
-                                    >
-                                        {index % 2 === 0 ? (
-                                            <div
-                                                style={
-                                                    classes.desktop
-                                                        .servicesImageContainerLeft
-                                                }
-                                            >
-                                                <img
-                                                    style={
-                                                        classes.desktop
-                                                            .servicesImage
-                                                    }
-                                                    alt={`service_${index}`}
-                                                    src={image}
-                                                    width={512}
-                                                    height={288}
-                                                />
-                                            </div>
-                                        ) : null}
+                        {services.map(
+                            ({ title, image, descriptions }, index) => (
+                                <div
+                                    key={index}
+                                    style={
+                                        classes.desktop
+                                            .servicesListItemContainer
+                                    }
+                                >
+                                    {index % 2 === 0 ? (
                                         <div
                                             style={
-                                                classes.desktop.servicesListItem
+                                                classes.desktop
+                                                    .servicesImageContainerLeft
                                             }
                                         >
-                                            <div
+                                            <img
                                                 style={
                                                     classes.desktop
-                                                        .servicesListItemTitle
+                                                        .servicesImage
                                                 }
-                                            >
-                                                {title}
-                                            </div>
-                                            <div
-                                                style={
-                                                    classes.desktop.servicesList
-                                                }
-                                            >
-                                                <List data={descriptions} />
-                                            </div>
+                                                alt={`service_${index}`}
+                                                src={image}
+                                                width={512}
+                                                height={288}
+                                            />
                                         </div>
-                                        {index % 2 === 1 ? (
-                                            <div
+                                    ) : null}
+                                    <div
+                                        style={classes.desktop.servicesListItem}
+                                    >
+                                        <div
+                                            style={
+                                                classes.desktop
+                                                    .servicesListItemTitle
+                                            }
+                                        >
+                                            {title}
+                                        </div>
+                                        <div
+                                            style={classes.desktop.servicesList}
+                                        >
+                                            <List data={descriptions} />
+                                        </div>
+                                    </div>
+                                    {index % 2 === 1 ? (
+                                        <div
+                                            style={
+                                                classes.desktop
+                                                    .servicesImageContainerRight
+                                            }
+                                        >
+                                            <img
                                                 style={
                                                     classes.desktop
-                                                        .servicesImageContainerRight
+                                                        .servicesImage
                                                 }
-                                            >
-                                                <img
-                                                    style={
-                                                        classes.desktop
-                                                            .servicesImage
-                                                    }
-                                                    alt={`service_${index}`}
-                                                    src={image}
-                                                    width={512}
-                                                    height={288}
-                                                />
-                                            </div>
-                                        ) : null}
-                                    </div>
-                                )
-                            )}
-                        </div>
+                                                alt={`service_${index}`}
+                                                src={image}
+                                                width={512}
+                                                height={288}
+                                            />
+                                        </div>
+                                    ) : null}
+                                </div>
+                            )
+                        )}
                     </div>
                     <div style={classes.desktop.contactsContainer}>
                         <div style={classes.desktop.contactsHeader}>
@@ -232,159 +206,113 @@ export default function Index() {
                     </div>
                 </div>
             ) : (
-                <div>
-                    <div style={classes.mobile.headerContainer}>
-                        <div style={classes.mobile.headerNameContainer}>
-                            <div style={classes.mobile.headerName}>Rita</div>
-                            <div style={classes.mobile.headerName}>Meira</div>
-                        </div>
-                        <div style={classes.mobile.headerPhotoContainer}>
-                            <img
-                                /**
-                                 * 1rem = 16px, thus height and width = 20rem * 16
-                                 */
-                                height={Math.min(320, width * 0.67)}
-                                width={Math.min(320, width * 0.67)}
-                                style={classes.mobile.headerPhoto}
-                                src={PortraitSmall}
-                                alt="Rita Meira"
-                            />
-                        </div>
+                <div style={classes.mobile.container}>
+                    <div style={classes.mobile.headerNameContainer}>
+                        <div style={classes.mobile.headerName}>Rita</div>
+                        <div style={classes.mobile.headerName}>Meira</div>
                     </div>
-                    <div style={classes.mobile.personalContainer}>
-                        <div style={classes.mobile.personalText}>
-                            Consultas Presenciais ou Online
-                        </div>
-                        <div style={classes.mobile.personalText}>
-                            <img
-                                alt="pin"
-                                src="/images/svg/location.svg"
-                                height={30}
-                                width={30}
-                            />
-                            Viana do Castelo / Braga
-                        </div>
-                        <div style={classes.mobile.modalButtonContainer}>
-                            <ContactModal />
-                        </div>
-                        <div style={classes.mobile.personalText}>
-                            Tratamento Psicológico com Jovens e Adultos
-                        </div>
-                        <div style={classes.mobile.personalText}>
-                            Acompanhamento Individual e de Casal
-                        </div>
-                        <List
-                            data={cv}
-                            textStyles={classes.mobile.personalCVListItem}
+                    <img
+                        /**
+                         * 1rem = 16px, thus height and width = 20rem * 16
+                         */
+                        height={Math.min(320, width * 0.67)}
+                        width={Math.min(320, width * 0.67)}
+                        style={classes.mobile.headerPhoto}
+                        src={PortraitSmall}
+                        alt="Rita Meira"
+                    />
+                    <div style={classes.mobile.personalText}>
+                        Consultas Presenciais ou Online
+                        <br />
+                        <img
+                            alt="pin"
+                            src="/images/svg/location.svg"
+                            height={30}
+                            width={30}
                         />
+                        Viana do Castelo / Braga
                     </div>
-                    <div style={classes.mobile.servicesContainer}>
-                        <div style={classes.mobile.servicesHeader}>
-                            Serviços
+                    <ContactModal
+                        buttonStyles={classes.mobile.contactModalButton}
+                    />
+                    <div style={classes.mobile.personalText}>
+                        Tratamento Psicológico com Jovens e Adultos
+                        <br />
+                        Acompanhamento Individual e de Casal
+                    </div>
+                    <List
+                        data={cv}
+                        textStyles={classes.mobile.personalCVListItem}
+                    />
+                    <div style={classes.mobile.servicesHeader}>Serviços</div>
+                    {services.map(({ title, image, descriptions }, index) => (
+                        <div
+                            key={index + title}
+                            style={classes.mobile.serviceContainer}
+                        >
+                            <div style={classes.mobile.servicesImageContainer}>
+                                <img
+                                    style={classes.mobile.servicesImage}
+                                    src={image}
+                                    alt={`service_${index}`}
+                                    width={Math.min(
+                                        512,
+                                        (512 / 288 - 1) * width
+                                    )}
+                                    height={Math.min(
+                                        288,
+                                        (1 - 288 / 512) * width
+                                    )}
+                                />
+                            </div>
+                            <div style={classes.mobile.serviceTextTitle}>
+                                {title}
+                            </div>
+                            <List
+                                data={descriptions}
+                                textStyles={classes.mobile.serviceTextListItem}
+                            />
                         </div>
-                        <div style={classes.mobile.servicesListContainer}>
-                            {services.map(
-                                ({ title, image, descriptions }, index) => (
-                                    <div
-                                        key={index + title}
-                                        style={classes.mobile.serviceContainer}
-                                    >
-                                        <div
-                                            style={
-                                                classes.mobile
-                                                    .servicesImageContainer
-                                            }
-                                        >
-                                            <img
-                                                style={
-                                                    classes.mobile.servicesImage
-                                                }
-                                                src={image}
-                                                alt={`service_${index}`}
-                                                width={Math.min(
-                                                    512,
-                                                    (512 / 288 - 1) * width
-                                                )}
-                                                height={Math.min(
-                                                    288,
-                                                    (1 - 288 / 512) * width
-                                                )}
-                                            />
-                                        </div>
-                                        <div
-                                            style={
-                                                classes.mobile
-                                                    .serviceTextContainer
-                                            }
-                                        >
-                                            <div
-                                                style={
-                                                    classes.mobile
-                                                        .serviceTextTitle
-                                                }
-                                            >
-                                                {title}
-                                            </div>
-                                            <List
-                                                data={descriptions}
-                                                textStyles={
-                                                    classes.mobile
-                                                        .serviceTextListItem
-                                                }
-                                            />
-                                        </div>
-                                    </div>
-                                )
-                            )}
+                    ))}
+                    <div style={classes.mobile.contactsHeader}>Contactos</div>
+                    {socials.map(({ image, url, text }) => (
+                        <SocialLink
+                            key={text}
+                            icon={image}
+                            url={url}
+                            text={text}
+                            containerStyles={
+                                classes.mobile.socialContainerStyles
+                            }
+                            textStyles={classes.mobile.socialTextStyles}
+                        />
+                    ))}
+                    <div style={classes.mobile.contactsMapHeader}>
+                        <div
+                            style={classes.mobile.contactsMapHeaderText}
+                            onClick={() => doToggle(false)}
+                        >
+                            Braga
+                        </div>
+                        <Switch
+                            color="offWhite"
+                            size="md"
+                            checked={toggle}
+                            onChange={() => doToggle()}
+                            style={{
+                                marginLeft: 10,
+                                marginRight: 10,
+                            }}
+                        />
+                        <div
+                            style={classes.mobile.contactsMapHeaderText}
+                            onClick={() => doToggle(true)}
+                        >
+                            Viana do Castelo
                         </div>
                     </div>
-                    <div style={classes.mobile.contactsContainer}>
-                        <div style={classes.mobile.contactsHeader}>
-                            Contactos
-                        </div>
-                        <div style={classes.mobile.contactsBodyContainer}>
-                            {socials.map(({ image, url, text }) => (
-                                <SocialLink
-                                    key={text}
-                                    icon={image}
-                                    url={url}
-                                    text={text}
-                                    containerStyles={
-                                        classes.mobile.socialContainerStyles
-                                    }
-                                    textStyles={classes.mobile.socialTextStyles}
-                                />
-                            ))}
-                        </div>
-                        <div style={classes.mobile.contactsMapContainer}>
-                            <div style={classes.mobile.contactsMapHeader}>
-                                <div
-                                    style={classes.mobile.contactsMapHeaderText}
-                                    onClick={() => doToggle(false)}
-                                >
-                                    Braga
-                                </div>
-                                <Switch
-                                    color="offWhite"
-                                    size="md"
-                                    checked={toggle}
-                                    onChange={() => doToggle()}
-                                    style={{
-                                        marginLeft: 10,
-                                        marginRight: 10,
-                                    }}
-                                />
-                                <div
-                                    style={classes.mobile.contactsMapHeaderText}
-                                    onClick={() => doToggle(true)}
-                                >
-                                    Viana do Castelo
-                                </div>
-                            </div>
-                            <div style={classes.mobile.contactsMapBody}>
-                                <CustomMap mobile toggle={toggle} />
-                            </div>
-                        </div>
+                    <div style={classes.mobile.contactsMapBody}>
+                        <CustomMap mobile toggle={toggle} />
                     </div>
                 </div>
             )}
@@ -405,45 +333,65 @@ export default function Index() {
 
 const classes = {
     desktop: {
+        container: {
+            display: 'flex',
+            flexDirection: 'column' as const,
+            alignItems: 'center',
+            justifyContent: 'center',
+            textAlign: 'center' as const,
+        },
         headerNameContainer: {
             display: 'flex',
             flexDirection: 'row' as const,
             justifyContent: 'center',
-            marginBottom: '-9rem',
-            marginTop: '-7rem',
+            marginBottom: '-8rem',
+            fontFamily: 'var(--font-signature)',
+            fontSize: 300,
+            marginTop: '-6rem',
         },
         headerName: {
-            fontSize: 300,
             marginRight: 48,
         },
-        headerCVList: { marginBottom: 16 },
-        headerPersonalTextBold: {
-            display: 'flex',
-            flexDirection: 'row' as const,
-            alignItems: 'center',
-            fontWeight: 'bold',
-            fontSize: 20,
-        },
-        headerCVText: { fontSize: 20 },
         headerPhotoCVContainer: {
             display: 'flex',
             flexDirection: 'row' as const,
-            alignItems: 'center',
-            justifyContent: 'center',
             marginTop: 16,
         },
-        headerPhotoContainer: { marginRight: 36 },
         headerPhoto: {
+            marginRight: 36,
             borderRadius: 50000,
         },
-        headerPersonalCVButtonContainer: {
+        headerCVButtonContainer: {
             display: 'flex',
             flexDirection: 'column' as const,
-            alignItems: 'center',
+            justifyItems: 'center',
+            alignItems: 'left',
+            fontSize: 20,
+            textAlign: 'left' as const,
         },
-        headerPersonalCVContainer: {
+        headerTextBold: {
             display: 'flex',
             flexDirection: 'column' as const,
+            justifyItems: 'flex-start',
+            fontWeight: 'bold',
+            marginLeft: '0rem',
+        },
+        locationContainer: {
+            display: 'flex',
+            flexDirection: 'row' as const,
+        },
+        headerCVList: {
+            marginBottom: '1rem',
+            marginTop: '1rem',
+            fontSize: 'calc(1em + 0.2vw)',
+        },
+        contactButtonContainer: {
+            display: 'flex',
+            alignSelf: 'center',
+        },
+        contactModalButton: {
+            height: '4rem',
+            fontSize: 'calc(1em + 1vw)',
         },
         servicesContainer: {
             display: 'flex',
@@ -483,6 +431,7 @@ const classes = {
         },
         servicesList: {
             marginLeft: 16,
+            textAlign: 'left' as const,
         },
         servicesImageContainerRight: { marginLeft: 16 },
         contactsContainer: {
@@ -532,6 +481,15 @@ const classes = {
         },
     },
     mobile: {
+        container: {
+            display: 'flex',
+            flexDirection: 'column' as const,
+            justifyContent: 'center',
+            alignItems: 'center',
+            textAlign: 'center' as const,
+            marginLeft: '1rem',
+            marginRight: '1rem',
+        },
         headerContainer: {
             display: 'flex',
             flexDirection: 'column' as const,
@@ -540,32 +498,25 @@ const classes = {
         headerNameContainer: {
             display: 'flex',
             flexDirection: 'row' as const,
-            marginTop: '-0rem', // -3rem
-            marginBottom: '-0rem', // -5rem
+            marginTop: '-3rem', // -3rem
+            marginBottom: '-4rem', // -5rem
+            fontFamily: 'var(--font-signature)',
+            fontSize: 'calc(5em + 15vw)',
         },
         headerName: {
-            fontFamily: 'Signature',
-            fontSize: 'calc(15vw)',
-            marginRight: '1rem',
             marginLeft: '1rem',
-        },
-        headerPhotoContainer: {
-            paddingLeft: '1rem',
-            paddingRight: '1rem',
         },
         headerPhoto: {
             borderRadius: 50000,
             objectFit: 'cover' as const,
         },
-        personalText: {
-            display: 'flex',
-            flexDirection: 'row' as const,
-            alignText: 'center',
-            fontWeight: 'bold',
+        contactModalButton: {
+            height: '3rem',
             fontSize: 'calc(1em + 1vw)',
         },
-        modalButtonContainer: {
-            margin: 10,
+        personalText: {
+            fontWeight: 'bold',
+            fontSize: 'calc(1em + 1vw)',
         },
         personalContainer: {
             display: 'flex',
@@ -590,6 +541,7 @@ const classes = {
         servicesHeader: {
             fontSize: 'calc(2em + 1vw)',
             fontWeight: 'bold',
+            marginTop: '1rem',
             marginBottom: '1rem',
         },
         servicesListContainer: {
@@ -605,10 +557,7 @@ const classes = {
             alignItems: 'center',
             marginLeft: '1rem',
             marginRight: '1rem',
-            marginBottom: 10,
-            '&:not(:lastOfType)': {
-                marginBottom: '1rem',
-            },
+            marginBottom: 20,
         },
         servicesImageContainer: {
             width: '80vw',
@@ -620,20 +569,13 @@ const classes = {
         servicesImage: {
             borderRadius: 16,
         },
-        serviceTextContainer: {
-            display: 'flex',
-            flexWrap: 'wrap' as const,
-            flexDirection: 'column' as const,
-            justifyContent: 'center',
-            fontSize: 22,
-        },
         serviceTextTitle: {
-            fontSize: 'calc(1em + 1vw)',
+            fontSize: 'calc(1.1em + 1vw)',
             fontWeight: 'bold',
             textAlign: 'center' as const,
         },
         serviceTextListItem: {
-            fontSize: 'calc(0.7em + 1vw)',
+            fontSize: 'calc(0.8em + 1vw)',
             textAlign: 'left' as const,
         },
         contactsContainer: {
@@ -645,6 +587,8 @@ const classes = {
         contactsHeader: {
             fontSize: 'calc(2em + 1vw)',
             fontWeight: 'bold',
+            marginTop: '1rem',
+            marginBottom: '0.5rem',
         },
         contactsBodyContainer: {
             display: 'flex',
@@ -658,7 +602,7 @@ const classes = {
             displayDirection: 'row',
             alignItems: 'center',
             justifyItems: 'center',
-            padding: '1rem',
+            padding: '0.5rem',
             fontSize: 'calc(0.6em + 1vw)',
             cursor: 'pointer',
         },
@@ -679,6 +623,7 @@ const classes = {
             flexDirection: 'row' as const,
             alignItems: 'center',
             justifyContent: 'center',
+            marginTop: 10,
             marginBottom: 10,
         },
         contactsMapHeaderText: {
@@ -691,6 +636,7 @@ const classes = {
             display: 'flex',
             alignContent: 'center',
             justifyContent: 'center',
+            marginBottom: '3rem',
         },
         switch: {
             marginLeft: 10,

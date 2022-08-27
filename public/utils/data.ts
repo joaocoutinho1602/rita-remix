@@ -44,18 +44,18 @@ export const services = [
 export const socials = [
     {
         image: IconBrandInstagram,
-        url: 'https://www.facebook.com/ritameirapsicologa',
-        text: 'instagram.com/ritameira.psi',
+        url: 'https://www.instagram.com/ritameira.psi',
+        text: 'ritameira.psi',
     },
     {
         image: IconBrandFacebook,
-        url: 'https://www.instagram.com/ritameira.psi',
-        text: 'facebook.com/ritameirapsicologa',
+        url: 'https://www.facebook.com/ritameirapsicologa',
+        text: 'Rita Meira, Psicóloga',
     },
     {
         image: IconBrandLinkedin,
         url: 'https://www.linkedin.com/in/rita-meira-532009171/',
-        text: 'linkedin.com/rita-meira',
+        text: 'Rita Meira',
     },
     {
         image: IconAt,

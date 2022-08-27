@@ -1,26 +1,22 @@
 import React, { useState } from 'react';
 
-import {
-    Button,
-    Modal,
-    Textarea,
-    TextInput,
-    createStyles,
-} from '@mantine/core';
+import { Button, Modal, Textarea, TextInput } from '@mantine/core';
 import { useForm } from '@mantine/form';
-import { useViewportSize } from '@mantine/hooks';
+// import { useViewportSize } from '@mantine/hooks';
 // import { showNotification } from '@mantine/notifications';
 
 // import { IconCheck, IconX } from '@tabler/icons';
 
-export function ContactModal() {
+type ContactModalProps = {
+    buttonStyles: { [key: string]: string | number };
+};
+
+export function ContactModal({ buttonStyles }: ContactModalProps) {
     const [open, setOpen] = useState(false);
     const [sending, setSending] = useState(false);
     const [sent, setSent] = useState(false);
 
-    const { width } = useViewportSize();
-
-    const { classes } = useClasses();
+    // const { width } = useViewportSize();
 
     const form = useForm({
         initialValues: {
@@ -116,16 +112,11 @@ export function ContactModal() {
 
     return (
         <div>
-            <div className={classes.buttonContainer}>
+            <div style={classes.buttonContainer}>
                 <Button
                     onClick={toggle}
                     radius="md"
-                    sx={{
-                        height: 60,
-                        width: Math.min(280, width * 0.67),
-                        fontSize: 'calc(1em + 1.5vw)',
-                    }}
-                    className={classes.openButton}
+                    style={{ ...classes.openButton, ...buttonStyles }}
                 >
                     Marcar Consulta
                 </Button>
@@ -133,9 +124,7 @@ export function ContactModal() {
             <Modal
                 opened={open}
                 onClose={toggle}
-                title={
-                    <div className={classes.title}>Formulário de Contacto</div>
-                }
+                title={<div style={classes.title}>Formulário de Contacto</div>}
             >
                 <form onSubmit={sendEmail}>
                     <TextInput
@@ -165,13 +154,13 @@ export function ContactModal() {
                         minRows={5}
                         {...form.getInputProps('description')}
                     />
-                    <div className={classes.sendButtonContainer}>
+                    <div style={classes.sendButtonContainer}>
                         <Button
                             type="submit"
                             loading={sending}
                             radius="md"
                             size="md"
-                            className={classes.sendButton}
+                            style={classes.sendButton}
                         >
                             Enviar
                         </Button>
@@ -182,28 +171,26 @@ export function ContactModal() {
     );
 }
 
-const useClasses = createStyles((theme) => ({
-    buttonContainer: { padding: theme.spacing.xs },
+const classes = {
+    buttonContainer: { padding: '0.5rem' },
     openButton: {
-        fontSize: 28,
         fontWeight: 500,
-        padding: '1rem',
-        backgroundColor: theme.colors.gray[7],
+        backgroundColor: '#495057',
         transition: 'all 0.2s ease-in-out',
-        '&:hover': { backgroundColor: theme.colors.gray[5] },
+        '&:hover': { backgroundColor: '#adb5bd' },
     },
-    title: { fontSize: 24, marginTop: -theme.spacing.xs },
+    title: { fontSize: 24, marginTop: '0.5rem' },
     sendButtonContainer: {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'flex-end',
     },
     sendButton: {
-        marginTop: theme.spacing.xl,
+        marginTop: '1.5rem',
         fontSize: 20,
         fontWeight: 500,
-        backgroundColor: theme.colors.green[7],
+        backgroundColor: '#37b24d',
         transition: 'all 0.2s ease-in-out',
-        '&:hover': { backgroundColor: theme.colors.green[5] },
+        '&:hover': { backgroundColor: '#51cf66' },
     },
-}));
+};

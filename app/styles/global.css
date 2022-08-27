@@ -1,6 +1,6 @@
 @font-face {
     font-family: 'Signature';
-    src: local(''), url('/public/fonts/signature/signature.ttf') format('ttf');
+    src: url('/fonts/signature/signature.ttf');
     font-weight: normal;
     font-style: normal;
 }
@@ -8,6 +8,7 @@
 :root {
     --font-body: 'Segoe UI', -apple-system, Roboto, Helvetica, Arial, sans-serif,
         Apple Color Emoji, Segoe UI Emoji;
+    --font-signature: 'Signature';
 }
 
 body {
@@ -20,5 +21,5 @@ body {
 }
 
 .signature {
-    font-family: 'Signature';
+    font-family: var(--font-signature);
 }
