@@ -32,6 +32,13 @@ export const links: LinksFunction = () => {
             type: 'font/ttf',
         },
         {
+            rel: 'preload',
+            href: '/fonts/body/body.ttf',
+            as: 'font',
+            crossOrigin: 'anonymous',
+            type: 'font/ttf',
+        },
+        {
             rel: 'stylesheet',
             href: globalStylesUrl,
         },
