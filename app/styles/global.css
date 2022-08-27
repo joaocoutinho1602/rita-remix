@@ -13,8 +13,6 @@
 }
 
 :root {
-    --font-body: 'Body', -apple-system, Roboto, Helvetica, Arial, sans-serif,
-        Apple Color Emoji, Segoe UI Emoji;
     --font-signature: 'Signature';
 }
 

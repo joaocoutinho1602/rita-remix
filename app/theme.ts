@@ -212,7 +212,7 @@ export const theme: MantineThemeBase = {
     colors,
     lineHeight: 1.55,
     fontFamily:
-        'Segoe UI, -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji',
+        'Body, Segoe UI, -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji',
     fontFamilyMonospace:
         'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, Courier New, monospace',
     primaryColor: 'blue',
@@ -260,7 +260,7 @@ export const theme: MantineThemeBase = {
     },
     headings: {
         fontFamily:
-            'Segoe UI, -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji',
+            'Body, Segoe UI, -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji',
         fontWeight: 700,
         sizes: {
             h1: { fontSize: 34, lineHeight: 1.3, fontWeight: undefined },
