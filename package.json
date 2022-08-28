@@ -17,7 +17,6 @@
         "@mantine/dropzone": "^5.2.0",
         "@mantine/form": "^5.2.0",
         "@mantine/hooks": "^5.2.0",
-        "@mantine/modals": "^5.2.0",
         "@mantine/notifications": "^5.2.0",
         "@mantine/nprogress": "^5.2.0",
         "@mantine/prism": "^5.2.0",
