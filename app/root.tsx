@@ -1,3 +1,5 @@
+import { useState } from 'react';
+
 import type { LinksFunction, MetaFunction } from '@remix-run/node';
 import {
     Links,
@@ -8,7 +10,8 @@ import {
     ScrollRestoration,
 } from '@remix-run/react';
 
-import { MantineProvider } from '@mantine/core';
+import type { ColorScheme } from '@mantine/core';
+import { ColorSchemeProvider, MantineProvider } from '@mantine/core';
 import { StylesPlaceholder } from '@mantine/remix';
 import { theme } from '~/theme';
 
@@ -45,22 +48,39 @@ export const links: LinksFunction = () => {
     ];
 };
 
+function MantineTheme({ children }: { children: React.ReactNode }) {
+    const [colorScheme, setColorScheme] = useState<ColorScheme>('light');
+    const toggleColorScheme = (value?: ColorScheme) =>
+        setColorScheme(value || (colorScheme === 'dark' ? 'light' : 'dark'));
+
+    return (
+        <ColorSchemeProvider
+            colorScheme={colorScheme}
+            toggleColorScheme={toggleColorScheme}
+        >
+            <MantineProvider theme={theme} withNormalizeCSS withGlobalStyles>
+                {children}
+            </MantineProvider>
+        </ColorSchemeProvider>
+    );
+}
+
 export default function App() {
     return (
-        <MantineProvider theme={theme} withGlobalStyles withNormalizeCSS>
-            <html lang="en">
-                <head>
-                    <Meta />
-                    <Links />
-                    <StylesPlaceholder />
-                </head>
-                <body>
+        <html lang="en">
+            <head>
+                <Meta />
+                <Links />
+                <StylesPlaceholder />
+            </head>
+            <body>
+                <MantineTheme>
                     <Outlet />
-                    <ScrollRestoration />
-                    <Scripts />
-                    <LiveReload />
-                </body>
-            </html>
-        </MantineProvider>
+                </MantineTheme>
+                <ScrollRestoration />
+                <Scripts />
+                <LiveReload />
+            </body>
+        </html>
     );
 }
