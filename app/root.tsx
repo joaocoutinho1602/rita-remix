@@ -11,11 +11,17 @@ import {
 } from '@remix-run/react';
 
 import type { ColorScheme } from '@mantine/core';
-import { ColorSchemeProvider, MantineProvider } from '@mantine/core';
+import {
+    ColorSchemeProvider,
+    MantineProvider,
+    createEmotionCache,
+} from '@mantine/core';
 import { StylesPlaceholder } from '@mantine/remix';
 import { theme } from '~/theme';
 
 import globalStylesUrl from '~/styles/global.css';
+
+const cache = createEmotionCache({ key: 'mantine' });
 
 export const meta: MetaFunction = () => ({
     charset: 'utf-8',
@@ -58,7 +64,12 @@ function MantineTheme({ children }: { children: React.ReactNode }) {
             colorScheme={colorScheme}
             toggleColorScheme={toggleColorScheme}
         >
-            <MantineProvider theme={theme} withNormalizeCSS withGlobalStyles>
+            <MantineProvider
+                emotionCache={cache}
+                theme={theme}
+                withNormalizeCSS
+                withGlobalStyles
+            >
                 {children}
             </MantineProvider>
         </ColorSchemeProvider>

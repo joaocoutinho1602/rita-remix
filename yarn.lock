@@ -1362,7 +1362,7 @@
   dependencies:
     "@mantine/utils" "5.2.4"
 
-"@mantine/ssr@5.2.4":
+"@mantine/ssr@5.2.4", "@mantine/ssr@^5.2.4":
   version "5.2.4"
   resolved "https://registry.yarnpkg.com/@mantine/ssr/-/ssr-5.2.4.tgz#f361c952c4318172b22ccbe9669824b1703e2962"
   integrity sha512-+phpx1RfQl5n2EITOylkbcrtIkmDK6+G1mu7JLI4/xw7SffBz8jdafkgoPx++SuKFu6TMaiXYGXBuoXNyXktrg==
