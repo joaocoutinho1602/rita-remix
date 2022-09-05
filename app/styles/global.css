@@ -1,13 +1,13 @@
 @font-face {
     font-family: 'Signature';
-    src: url('/fonts/signature/signature.ttf');
+    src: url('/fonts/signature.ttf');
     font-weight: normal;
     font-style: normal;
 }
 
 @font-face {
     font-family: 'Body';
-    src: url('/fonts/body/body.ttf');
+    src: url('/fonts/body.ttf');
     font-weight: normal;
     font-style: normal;
 }

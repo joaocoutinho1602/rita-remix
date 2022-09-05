@@ -1,4 +1,5 @@
-export { ContactModal } from './ContactModal'
-export { CustomMap } from './CustomMap'
-export { List } from './List'
-export { SocialLink } from './SocialLink';
+export { CommentsCarousel } from './CommentsCarousel';
+export { ContactModal, ContactModalLinks } from './ContactModal';
+export { CustomMap } from './CustomMap';
+export { List, ListLinks } from './List';
+export { SocialLink, SocialLinkLinks } from './SocialLink';

@@ -1,0 +1,32 @@
+.desktopSocialLinksContainer {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-items: center;
+    padding: 1rem;
+    font-size: 24;
+    cursor: pointer;
+}
+
+.desktopSocialLinksText {
+    padding-left: 0.5rem;
+    padding-top: 0.25rem;
+    padding-bottom: 0.25rem;
+}
+
+.mobileSocialLinksContainer {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-items: center;
+    padding: 0.5rem;
+    font-size: calc(0.6em + 1vw);
+    cursor: pointer;
+}
+
+.mobileSocialLinksText {
+    padding-left: 0.5rem;
+    padding-top: 0.25rem;
+    padding-bottom: 0.25rem;
+    font-size: calc(0.75em + 1.5vw);
+}

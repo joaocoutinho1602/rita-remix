@@ -1,0 +1,30 @@
+.customList {
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: column;
+    justify-content: center;
+    white-space: normal;
+    list-style-position: inside;
+    /**
+     * These are set to zero due to Chrome's
+     * user agent stylesheets
+     */
+    margin: 0;
+    padding: 0;
+}
+
+.customListWithCheck {
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: column;
+    justify-content: center;
+    white-space: normal;
+    list-style-image: url(/images/svg/check.svg);
+    list-style-position: inside;
+    /**
+     * These are set to zero due to Chrome's
+     * user agent stylesheets
+     */
+    margin: 0;
+    padding: 0;
+}

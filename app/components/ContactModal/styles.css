@@ -1,0 +1,14 @@
+.buttonContainer {
+    padding: 0.5rem;
+}
+
+.title {
+    font-size: 24px;
+    margin-top: 0.5rem;
+}
+
+.sendButtonContainer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+}

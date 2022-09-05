@@ -16,6 +16,7 @@ import {
     MantineProvider,
     createEmotionCache,
 } from '@mantine/core';
+import { NotificationsProvider } from '@mantine/notifications';
 import { StylesPlaceholder } from '@mantine/remix';
 import { theme } from '~/theme';
 
@@ -35,14 +36,14 @@ export const links: LinksFunction = () => {
     return [
         {
             rel: 'preload',
-            href: '/fonts/signature/signature.ttf',
+            href: '/fonts/signature.ttf',
             as: 'font',
             crossOrigin: 'anonymous',
             type: 'font/ttf',
         },
         {
             rel: 'preload',
-            href: '/fonts/body/body.ttf',
+            href: '/fonts/body.ttf',
             as: 'font',
             crossOrigin: 'anonymous',
             type: 'font/ttf',
@@ -70,7 +71,7 @@ function MantineTheme({ children }: { children: React.ReactNode }) {
                 withNormalizeCSS
                 withGlobalStyles
             >
-                {children}
+                <NotificationsProvider>{children}</NotificationsProvider>
             </MantineProvider>
         </ColorSchemeProvider>
     );

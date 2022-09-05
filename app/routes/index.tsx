@@ -1,8 +1,8 @@
 import { useState } from 'react';
 
-import { json } from '@remix-run/node';
-import type { LoaderArgs } from '@remix-run/node';
-// import { useLoaderData } from '@remix-run/react';
+// import { useLoaderData, useNavigate } from '@remix-run/react';
+// import type { LoaderFunction } from '@remix-run/node';
+// import { json } from '@remix-run/node';
 
 import { Affix, Switch, Transition } from '@mantine/core';
 import {
@@ -13,16 +13,40 @@ import {
 
 import { IconArrowUpCircle } from '@tabler/icons';
 import { Portrait, PortraitSmall } from 'public/images';
-import { cv, services, socials } from 'public/utils/data';
 
-import { ContactModal, CustomMap, List, SocialLink } from '~/components';
+import {
+    CommentsCarousel,
+    ContactModal,
+    ContactModalLinks,
+    CustomMap,
+    SocialLink,
+    SocialLinkLinks,
+} from '~/components';
 
-export async function loader(args: LoaderArgs) {
-    return json({ defaultWidth: 1234 });
+import { cv, services, socials } from '~/utils/data';
+
+
+import styles from '../styles/root.css';
+import { useLoader } from '~/hooks/useLoader';
+
+export function links() {
+    return [
+        ...ContactModalLinks(),
+        ...SocialLinkLinks(),
+        { rel: 'stylesheet', href: styles },
+    ];
 }
+
+// export const loader: LoaderFunction = async () => {
+//     console.log('index loader');
+//     return json({ fuck: 'me' });
+// }
 
 export default function Index() {
     // const data = useLoaderData<typeof loader>();
+
+    const reload = useLoader();
+
     const [toggle, setToggle] = useState(false);
 
     const isDesktop = useMediaQuery('(min-width: 1224px)', false);
@@ -38,23 +62,23 @@ export default function Index() {
     return (
         <div>
             {isDesktop ? (
-                <div style={classes.desktop.container}>
-                    <div style={classes.desktop.headerNameContainer}>
-                        <div style={classes.desktop.headerName}>Rita</div>
-                        <div style={classes.desktop.headerName}>Meira</div>
+                <div className="desktopContainer">
+                    <div className="desktopHeaderNameContainer">
+                        <div onClick={reload} className="desktopHeaderName">Rita</div>
+                        <div className="desktopHeaderName">Meira</div>
                     </div>
-                    <div style={classes.desktop.headerPhotoCVContainer}>
+                    <div className="desktopHeaderPhotoCVContainer">
                         <img
-                            style={classes.desktop.headerPhoto}
+                            className="desktopHeaderPhoto"
                             height={400}
                             width={400}
                             src={Portrait}
                             alt="Rita Meira"
                         />
-                        <div style={classes.desktop.headerCVButtonContainer}>
-                            <div style={classes.desktop.headerTextBold}>
+                        <div className="desktopHeaderCVButtonContainer">
+                            <div className="desktopHeaderTextBold">
                                 Consultas Presenciais ou Online
-                                <div style={classes.desktop.locationContainer}>
+                                <div className="desktopLocationContainer">
                                     <img
                                         alt="pin"
                                         src="/images/svg/location.svg"
@@ -67,43 +91,36 @@ export default function Index() {
                                 <br />
                                 Acompanhamento Individual e de Casal
                             </div>
-                            <div style={classes.desktop.headerCVList}>
-                                <List data={cv} />
+                            <div className="desktopHeaderCVList">
+                                <ul className="checkedList">
+                                    {cv.map((item, index) => (
+                                        <li key={index + item}>{item}</li>
+                                    ))}
+                                </ul>
                             </div>
-                            <div style={classes.desktop.contactButtonContainer}>
-                                <ContactModal
-                                    buttonStyles={
-                                        classes.desktop.contactModalButton
-                                    }
-                                />
+                            <div className="desktopContactButtonContainer">
+                                <ContactModal desktop />
                             </div>
                         </div>
                     </div>
-                    <div style={classes.desktop.servicesContainer}>
-                        <div style={classes.desktop.servicesHeader}>
-                            Serviços
+                    <div className="desktopCommentsContainer">
+                        <div className="desktopCommentsHeader">
+                            O que me dizem os meus clientes
                         </div>
+                        <CommentsCarousel />
+                    </div>
+                    <div className="desktopServicesContainer">
+                        <div className="desktopServicesHeader">Serviços</div>
                         {services.map(
                             ({ title, image, descriptions }, index) => (
                                 <div
                                     key={index}
-                                    style={
-                                        classes.desktop
-                                            .servicesListItemContainer
-                                    }
+                                    className="desktopServicesListItemContainer"
                                 >
                                     {index % 2 === 0 ? (
-                                        <div
-                                            style={
-                                                classes.desktop
-                                                    .servicesImageContainerLeft
-                                            }
-                                        >
+                                        <div className="desktopServicesImageContainerLeft">
                                             <img
-                                                style={
-                                                    classes.desktop
-                                                        .servicesImage
-                                                }
+                                                className="desktopServicesImage"
                                                 alt={`service_${index}`}
                                                 src={image}
                                                 width={512}
@@ -111,35 +128,26 @@ export default function Index() {
                                             />
                                         </div>
                                     ) : null}
-                                    <div
-                                        style={classes.desktop.servicesListItem}
-                                    >
-                                        <div
-                                            style={
-                                                classes.desktop
-                                                    .servicesListItemTitle
-                                            }
-                                        >
+                                    <div className="desktopServicesListItem">
+                                        <div className="desktopServicesListItemTitle">
                                             {title}
                                         </div>
-                                        <div
-                                            style={classes.desktop.servicesList}
-                                        >
-                                            <List data={descriptions} />
+                                        <div className="desktopServicesList">
+                                            <ul className="checkedList">
+                                                {descriptions.map(
+                                                    (item, index) => (
+                                                        <li key={index + item}>
+                                                            {item}
+                                                        </li>
+                                                    )
+                                                )}
+                                            </ul>
                                         </div>
                                     </div>
                                     {index % 2 === 1 ? (
-                                        <div
-                                            style={
-                                                classes.desktop
-                                                    .servicesImageContainerRight
-                                            }
-                                        >
+                                        <div className="desktopServicesImageContainerRight">
                                             <img
-                                                style={
-                                                    classes.desktop
-                                                        .servicesImage
-                                                }
+                                                className="desktopServicesImage"
                                                 alt={`service_${index}`}
                                                 src={image}
                                                 width={512}
@@ -151,13 +159,11 @@ export default function Index() {
                             )
                         )}
                     </div>
-                    <div style={classes.desktop.contactsContainer}>
-                        <div style={classes.desktop.contactsHeader}>
-                            Contactos
-                        </div>
-                        <div style={classes.desktop.contactsMapHeaderContainer}>
+                    <div className="desktopContactsContainer">
+                        <div className="desktopContactsHeader">Contactos</div>
+                        <div className="desktopContactsMapHeaderContainer">
                             <div
-                                style={classes.desktop.contactsMapHeaderText}
+                                className="desktopContactsMapHeaderText"
                                 onClick={() => doToggle(false)}
                             >
                                 Braga
@@ -173,32 +179,24 @@ export default function Index() {
                                 }}
                             />
                             <div
-                                style={classes.desktop.contactsMapHeaderText}
+                                className="desktopContactsMapHeaderText"
                                 onClick={() => doToggle(true)}
                             >
                                 Viana do Castelo
                             </div>
                         </div>
-                        <div style={classes.desktop.contactsBodyContainer}>
-                            <div style={classes.desktop.contactsMapContainer}>
+                        <div className="desktopContactsBodyContainer">
+                            <div className="desktopContactsMapContainer">
                                 <CustomMap mobile={false} toggle={toggle} />
                             </div>
-                            <div
-                                style={classes.desktop.contactsSocialsContainer}
-                            >
+                            <div className="desktopContactsSocialsContainer">
                                 {socials.map(({ image, url, text }) => (
                                     <SocialLink
                                         key={text}
                                         icon={image}
                                         url={url}
                                         text={text}
-                                        containerStyles={
-                                            classes.desktop
-                                                .socialContainerStyles
-                                        }
-                                        textStyles={
-                                            classes.desktop.socialTextStyles
-                                        }
+                                        desktop
                                     />
                                 ))}
                             </div>
@@ -206,10 +204,10 @@ export default function Index() {
                     </div>
                 </div>
             ) : (
-                <div style={classes.mobile.container}>
-                    <div style={classes.mobile.headerNameContainer}>
-                        <div style={classes.mobile.headerName}>Rita</div>
-                        <div style={classes.mobile.headerName}>Meira</div>
+                <div className="mobileContainer">
+                    <div className="mobileHeaderNameContainer">
+                        <div className="mobileHeaderName">Rita</div>
+                        <div className="mobileHeaderName">Meira</div>
                     </div>
                     <img
                         /**
@@ -217,11 +215,11 @@ export default function Index() {
                          */
                         height={Math.min(320, width * 0.67)}
                         width={Math.min(320, width * 0.67)}
-                        style={classes.mobile.headerPhoto}
+                        className="mobileHeaderPhoto"
                         src={PortraitSmall}
                         alt="Rita Meira"
                     />
-                    <div style={classes.mobile.personalText}>
+                    <div className="mobilePersonalText">
                         Consultas Presenciais ou Online
                         <br />
                         <img
@@ -232,27 +230,39 @@ export default function Index() {
                         />
                         Viana do Castelo / Braga
                     </div>
-                    <ContactModal
-                        buttonStyles={classes.mobile.contactModalButton}
-                    />
-                    <div style={classes.mobile.personalText}>
-                        Tratamento Psicológico com Jovens e Adultos
-                        <br />
-                        Acompanhamento Individual e de Casal
+                    <ContactModal />
+                    <div className="mobilePersonalContainer">
+                        <div className="mobilePersonalText">
+                            Tratamento Psicológico com Jovens e Adultos
+                            <br />
+                            Acompanhamento Individual e de Casal
+                        </div>
+                        <ul className="checkedList">
+                            {cv.map((item, index) => (
+                                <li
+                                    key={index + item}
+                                    className="mobilePersonalListItem"
+                                >
+                                    {item}
+                                </li>
+                            ))}
+                        </ul>
                     </div>
-                    <List
-                        data={cv}
-                        textStyles={classes.mobile.personalCVListItem}
-                    />
-                    <div style={classes.mobile.servicesHeader}>Serviços</div>
+                    <div className="mobileCommentsContainer">
+                        <div className="mobileCommentsHeader">
+                            O que me dizem os meus clientes
+                        </div>
+                        <CommentsCarousel mobile />
+                    </div>
+                    <div className="mobileServicesHeader">Serviços</div>
                     {services.map(({ title, image, descriptions }, index) => (
                         <div
                             key={index + title}
-                            style={classes.mobile.serviceContainer}
+                            className="mobileServiceContainer"
                         >
-                            <div style={classes.mobile.servicesImageContainer}>
+                            <div className="mobileServicesImageContainer">
                                 <img
-                                    style={classes.mobile.servicesImage}
+                                    className="mobileServicesImage"
                                     src={image}
                                     alt={`service_${index}`}
                                     width={Math.min(
@@ -265,31 +275,33 @@ export default function Index() {
                                     )}
                                 />
                             </div>
-                            <div style={classes.mobile.serviceTextTitle}>
+                            <div className="mobileServiceTextTitle">
                                 {title}
                             </div>
-                            <List
-                                data={descriptions}
-                                textStyles={classes.mobile.serviceTextListItem}
-                            />
+                            <ul className="checkedList">
+                                {descriptions.map((item, index) => (
+                                    <li
+                                        key={item}
+                                        className="mobileServiceTextBody"
+                                    >
+                                        {item}
+                                    </li>
+                                ))}
+                            </ul>
                         </div>
                     ))}
-                    <div style={classes.mobile.contactsHeader}>Contactos</div>
+                    <div className="mobileContactsHeader">Contactos</div>
                     {socials.map(({ image, url, text }) => (
                         <SocialLink
                             key={text}
                             icon={image}
                             url={url}
                             text={text}
-                            containerStyles={
-                                classes.mobile.socialContainerStyles
-                            }
-                            textStyles={classes.mobile.socialTextStyles}
                         />
                     ))}
-                    <div style={classes.mobile.contactsMapHeader}>
+                    <div className="mobileContactsMapHeader">
                         <div
-                            style={classes.mobile.contactsMapHeaderText}
+                            className="mobileContactsMapHeaderText"
                             onClick={() => doToggle(false)}
                         >
                             Braga
@@ -305,13 +317,13 @@ export default function Index() {
                             }}
                         />
                         <div
-                            style={classes.mobile.contactsMapHeaderText}
+                            className="mobileContactsMapHeaderText"
                             onClick={() => doToggle(true)}
                         >
                             Viana do Castelo
                         </div>
                     </div>
-                    <div style={classes.mobile.contactsMapBody}>
+                    <div className="mobileContactsMapBody">
                         <CustomMap mobile toggle={toggle} />
                     </div>
                 </div>
@@ -330,318 +342,3 @@ export default function Index() {
         </div>
     );
 }
-
-const classes = {
-    desktop: {
-        container: {
-            display: 'flex',
-            flexDirection: 'column' as const,
-            alignItems: 'center',
-            justifyContent: 'center',
-            textAlign: 'center' as const,
-        },
-        headerNameContainer: {
-            display: 'flex',
-            flexDirection: 'row' as const,
-            justifyContent: 'center',
-            marginBottom: '-8rem',
-            fontFamily: 'var(--font-signature)',
-            fontSize: 300,
-            marginTop: '-6rem',
-        },
-        headerName: {
-            marginRight: 48,
-        },
-        headerPhotoCVContainer: {
-            display: 'flex',
-            flexDirection: 'row' as const,
-            marginTop: 16,
-        },
-        headerPhoto: {
-            marginRight: 36,
-            borderRadius: 50000,
-        },
-        headerCVButtonContainer: {
-            display: 'flex',
-            flexDirection: 'column' as const,
-            justifyItems: 'center',
-            alignItems: 'left',
-            fontSize: 20,
-            textAlign: 'left' as const,
-        },
-        headerTextBold: {
-            display: 'flex',
-            flexDirection: 'column' as const,
-            justifyItems: 'flex-start',
-            fontWeight: 'bold',
-            marginLeft: '0rem',
-        },
-        locationContainer: {
-            display: 'flex',
-            flexDirection: 'row' as const,
-        },
-        headerCVList: {
-            marginBottom: '1rem',
-            marginTop: '1rem',
-            fontSize: 'calc(1em + 0.2vw)',
-        },
-        contactButtonContainer: {
-            display: 'flex',
-            alignSelf: 'center',
-        },
-        contactModalButton: {
-            height: '4rem',
-            fontSize: 'calc(1em + 1vw)',
-        },
-        servicesContainer: {
-            display: 'flex',
-            flexDirection: 'column' as const,
-            alignItems: 'center',
-            marginTop: 36,
-        },
-        servicesHeader: {
-            fontSize: 42,
-            fontWeight: 'bold',
-            marginBottom: 24,
-        },
-        servicesListContainer: {
-            display: 'flex',
-            flexDirection: 'column' as const,
-            alignItems: 'center',
-            justifyItems: 'center',
-        },
-        servicesListItemContainer: {
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            marginBottom: 48,
-        },
-        servicesImageContainerLeft: { marginRight: 16 },
-        servicesImage: {
-            borderRadius: 16,
-        },
-        servicesListItem: {
-            display: 'flex',
-            flexDirection: 'column' as const,
-            fontSize: 20,
-        },
-        servicesListItemTitle: {
-            fontSize: 26,
-            fontWeight: 'bold',
-        },
-        servicesList: {
-            marginLeft: 16,
-            textAlign: 'left' as const,
-        },
-        servicesImageContainerRight: { marginLeft: 16 },
-        contactsContainer: {
-            display: 'flex',
-            flexDirection: 'column' as const,
-            alignItems: 'center',
-            paddingBottom: 48,
-        },
-        contactsHeader: {
-            fontSize: 42,
-            fontWeight: 'bold',
-        },
-        socialContainerStyles: {
-            display: 'flex',
-            flexDirection: 'row' as const,
-            alignItems: 'center',
-            justifyItems: 'center',
-            padding: '1rem',
-            fontSize: 24,
-            cursor: 'pointer',
-        },
-        socialTextStyles: {
-            paddingLeft: '0.5rem',
-            paddingTop: '0.25rem',
-            paddingBottom: '0.25rem',
-        },
-        contactsMapHeaderContainer: {
-            display: 'flex',
-            flexDirection: 'row' as const,
-            alignItems: 'center',
-            marginTop: 16,
-            marginBottom: 16,
-        },
-        contactsMapHeaderText: { fontSize: 20 },
-        contactsBodyContainer: {
-            display: 'flex',
-            flexDirection: 'row' as const,
-            alignItems: 'center',
-        },
-        contactsMapContainer: {
-            marginRight: 16,
-            cursor: 'pointer',
-        },
-        contactsSocialsContainer: {
-            textAlign: 'left' as const,
-            fontSize: 26,
-        },
-    },
-    mobile: {
-        container: {
-            display: 'flex',
-            flexDirection: 'column' as const,
-            justifyContent: 'center',
-            alignItems: 'center',
-            textAlign: 'center' as const,
-            marginLeft: '1rem',
-            marginRight: '1rem',
-        },
-        headerContainer: {
-            display: 'flex',
-            flexDirection: 'column' as const,
-            alignItems: 'center',
-        },
-        headerNameContainer: {
-            display: 'flex',
-            flexDirection: 'row' as const,
-            marginTop: '-3rem', // -3rem
-            marginBottom: '-4rem', // -5rem
-            fontFamily: 'var(--font-signature)',
-            fontSize: 'calc(5em + 15vw)',
-        },
-        headerName: {
-            marginLeft: '1rem',
-        },
-        headerPhoto: {
-            borderRadius: 50000,
-            objectFit: 'cover' as const,
-        },
-        contactModalButton: {
-            height: '3rem',
-            fontSize: 'calc(1em + 1vw)',
-        },
-        personalText: {
-            fontWeight: 'bold',
-            fontSize: 'calc(1em + 1vw)',
-        },
-        personalContainer: {
-            display: 'flex',
-            flexDirection: 'column' as const,
-            alignItems: 'center',
-            justifyItems: 'center',
-            marginLeft: '1rem',
-            marginRight: '1rem',
-            marginBottom: '1rem',
-            textAlign: 'center' as const,
-        },
-        personalCVListItem: {
-            fontSize: 'calc(1em + 1vw)',
-            textAlign: 'center' as const,
-        },
-        servicesContainer: {
-            display: 'flex',
-            flexDirection: 'column' as const,
-            alignItems: 'center',
-            marginBottom: '1rem',
-        },
-        servicesHeader: {
-            fontSize: 'calc(2em + 1vw)',
-            fontWeight: 'bold',
-            marginTop: '1rem',
-            marginBottom: '1rem',
-        },
-        servicesListContainer: {
-            display: 'flex',
-            flexDirection: 'column' as const,
-            alignItems: 'center',
-            justifyItems: 'center',
-        },
-        serviceContainer: {
-            display: 'flex',
-            flexDirection: 'column' as const,
-            justifyContent: 'center',
-            alignItems: 'center',
-            marginLeft: '1rem',
-            marginRight: '1rem',
-            marginBottom: 20,
-        },
-        servicesImageContainer: {
-            width: '80vw',
-            height: '45vw',
-            maxWidth: '32rem',
-            maxHeight: '18rem',
-            marginBottom: 10,
-        },
-        servicesImage: {
-            borderRadius: 16,
-        },
-        serviceTextTitle: {
-            fontSize: 'calc(1.1em + 1vw)',
-            fontWeight: 'bold',
-            textAlign: 'center' as const,
-        },
-        serviceTextListItem: {
-            fontSize: 'calc(0.8em + 1vw)',
-            textAlign: 'left' as const,
-        },
-        contactsContainer: {
-            display: 'flex',
-            flexDirection: 'column' as const,
-            alignItems: 'center',
-            paddingBottom: 48,
-        },
-        contactsHeader: {
-            fontSize: 'calc(2em + 1vw)',
-            fontWeight: 'bold',
-            marginTop: '1rem',
-            marginBottom: '0.5rem',
-        },
-        contactsBodyContainer: {
-            display: 'flex',
-            flexDirection: 'column' as const,
-            alignItems: 'center',
-            textAlign: 'left' as const,
-            fontSize: 'calc(1em + 1vw)',
-        },
-        socialContainerStyles: {
-            display: 'flex',
-            displayDirection: 'row',
-            alignItems: 'center',
-            justifyItems: 'center',
-            padding: '0.5rem',
-            fontSize: 'calc(0.6em + 1vw)',
-            cursor: 'pointer',
-        },
-        socialTextStyles: {
-            paddingLeft: '0.5rem',
-            paddingTop: '0.25rem',
-            paddingBottom: '0.25rem',
-            fontSize: 'calc(0.75em + 1.5vw)',
-        },
-        contactsMapContainer: {
-            display: 'flex',
-            flexDirection: 'column' as const,
-            alignContent: 'center',
-            justifyContent: 'center',
-        },
-        contactsMapHeader: {
-            display: 'flex',
-            flexDirection: 'row' as const,
-            alignItems: 'center',
-            justifyContent: 'center',
-            marginTop: 10,
-            marginBottom: 10,
-        },
-        contactsMapHeaderText: {
-            fontSize: 'calc(0.5em + 3vw)',
-            whiteSpace: 'nowrap' as const,
-            overflow: 'hidden',
-        },
-        contactsMapBody: {
-            cursor: 'pointer',
-            display: 'flex',
-            alignContent: 'center',
-            justifyContent: 'center',
-            marginBottom: '3rem',
-        },
-        switch: {
-            marginLeft: 10,
-            marginRight: 10,
-            color: '#e9ecef',
-        },
-    },
-};

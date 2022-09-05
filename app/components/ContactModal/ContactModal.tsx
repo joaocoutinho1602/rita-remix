@@ -2,21 +2,24 @@ import React, { useState } from 'react';
 
 import { Button, Modal, Textarea, TextInput } from '@mantine/core';
 import { useForm } from '@mantine/form';
-// import { useViewportSize } from '@mantine/hooks';
-// import { showNotification } from '@mantine/notifications';
+import { showNotification } from '@mantine/notifications';
 
-// import { IconCheck, IconX } from '@tabler/icons';
+import { IconCheck, IconX } from '@tabler/icons';
+
+import styles from './styles.css';
 
 type ContactModalProps = {
-    buttonStyles: { [key: string]: string | number };
+    desktop?: boolean;
 };
 
-export function ContactModal({ buttonStyles }: ContactModalProps) {
+export function links() {
+    return [{ rel: 'stylesheet', href: styles }];
+}
+
+export function ContactModal({ desktop }: ContactModalProps) {
     const [open, setOpen] = useState(false);
     const [sending, setSending] = useState(false);
     const [sent, setSent] = useState(false);
-
-    // const { width } = useViewportSize();
 
     const form = useForm({
         initialValues: {
@@ -52,48 +55,39 @@ export function ContactModal({ buttonStyles }: ContactModalProps) {
 
         const { name, email, phone, description } = form.values;
 
-        console.log(
-            'name, email, phone, description -> ',
-            name,
-            email,
-            phone,
-            description
-        );
+        setSending(true);
 
-        // setSending(true);
-
-        // mutate(
-        //     { name, email, phone, description },
-        //     {
-        //         onSuccess: () => {
-        //             setSent(true);
-        //             setTimeout(toggle, 5000);
-        //             showNotification({
-        //                 id: 'email-success',
-        //                 autoClose: 5000,
-        //                 title: 'Enviado com sucesso',
-        //                 message: 'será contactada/o em breve',
-        //                 color: 'teal',
-        //                 icon: <IconCheck />,
-        //                 loading: false,
-        //             });
-        //         },
-        //         onError: () => {
-        //             showNotification({
-        //                 id: 'email-error',
-        //                 autoClose: 5000,
-        //                 title: 'Ocorreu um erro',
-        //                 message: 'tente submeter novamente',
-        //                 color: 'red',
-        //                 icon: <IconX />,
-        //                 loading: false,
-        //             });
-        //         },
-        //         onSettled: () => {
-        //             setSending(false);
-        //         },
-        //     }
-        // );
+        await fetch('/api/email', {
+            method: 'POST',
+            body: JSON.stringify({ name, email, phone, description }),
+        })
+            .then(() => {
+                setSent(true);
+                setTimeout(toggle, 5000);
+                showNotification({
+                    id: 'email-success',
+                    autoClose: 5000,
+                    title: 'Enviado com sucesso',
+                    message: 'será contactada/o em breve',
+                    color: 'teal',
+                    icon: <IconCheck />,
+                    loading: false,
+                });
+            })
+            .catch(() => {
+                showNotification({
+                    id: 'email-error',
+                    autoClose: 5000,
+                    title: 'Ocorreu um erro',
+                    message: 'tente submeter novamente',
+                    color: 'red',
+                    icon: <IconX />,
+                    loading: false,
+                });
+            })
+            .finally(() => {
+                setSending(false);
+            });
     }
 
     function toggle() {
@@ -112,11 +106,15 @@ export function ContactModal({ buttonStyles }: ContactModalProps) {
 
     return (
         <div>
-            <div style={classes.buttonContainer}>
+            <div className="buttonContainer">
                 <Button
                     onClick={toggle}
                     radius="md"
-                    style={{ ...classes.openButton, ...buttonStyles }}
+                    style={
+                        desktop
+                            ? classes.desktopOpenButton
+                            : classes.mobileOpenButton
+                    }
                 >
                     Marcar Consulta
                 </Button>
@@ -124,7 +122,7 @@ export function ContactModal({ buttonStyles }: ContactModalProps) {
             <Modal
                 opened={open}
                 onClose={toggle}
-                title={<div style={classes.title}>Formulário de Contacto</div>}
+                title={<div className="title">Formulário de Contacto</div>}
             >
                 <form onSubmit={sendEmail}>
                     <TextInput
@@ -154,7 +152,7 @@ export function ContactModal({ buttonStyles }: ContactModalProps) {
                         minRows={5}
                         {...form.getInputProps('description')}
                     />
-                    <div style={classes.sendButtonContainer}>
+                    <div className="sendButtonContainer">
                         <Button
                             type="submit"
                             loading={sending}
@@ -172,18 +170,21 @@ export function ContactModal({ buttonStyles }: ContactModalProps) {
 }
 
 const classes = {
-    buttonContainer: { padding: '0.5rem' },
-    openButton: {
+    desktopOpenButton: {
+        height: '4rem',
+        fontSize: 'calc(1em + 0.5vw)',
         fontWeight: 500,
         backgroundColor: '#495057',
         transition: 'all 0.2s ease-in-out',
         '&:hover': { backgroundColor: '#adb5bd' },
     },
-    title: { fontSize: 24, marginTop: '0.5rem' },
-    sendButtonContainer: {
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'flex-end',
+    mobileOpenButton: {
+        height: '4rem',
+        fontSize: 'calc(1.5em + 0.5vw)',
+        fontWeight: 500,
+        backgroundColor: '#495057',
+        transition: 'all 0.2s ease-in-out',
+        '&:hover': { backgroundColor: '#adb5bd' },
     },
     sendButton: {
         marginTop: '1.5rem',

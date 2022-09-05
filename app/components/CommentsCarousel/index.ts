@@ -1,0 +1,1 @@
+export { CommentsCarousel } from './CommentsCarousel';

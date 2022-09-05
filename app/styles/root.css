@@ -1,0 +1,351 @@
+.desktopContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.desktopHeaderNameContainer {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    margin-bottom: -10rem;
+    margin-top: -8rem;
+    font-family: var(--font-signature);
+    font-size: calc(15em + 10vw);
+}
+
+.desktopHeaderName {
+    margin-right: 48px;
+}
+
+.desktopHeaderPhotoCVContainer {
+    display: flex;
+    flex-direction: row;
+    margin-top: 16px;
+}
+
+.desktopHeaderPhoto {
+    margin-right: 36px;
+    border-radius: 50%;
+}
+
+.desktopHeaderCVButtonContainer {
+    display: flex;
+    flex-direction: column;
+    justify-items: center;
+    align-items: flex-start;
+    font-size: 20px;
+    text-align: left;
+}
+
+.desktopHeaderTextBold {
+    display: flex;
+    flex-direction: column;
+    justify-items: flex-start;
+    font-weight: bold;
+    margin-left: 0rem;
+}
+
+.desktopLocationContainer {
+    display: flex;
+    flex-direction: row;
+}
+
+.desktopHeaderCVList {
+    margin-bottom: 1rem;
+    margin-top: 1rem;
+    font-size: calc(1em + 0.2vw);
+}
+
+.desktopContactButtonContainer {
+    display: flex;
+    align-self: center;
+}
+
+.desktopCommentsContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    margin-top: 1rem;
+}
+
+.desktopCommentsHeader {
+    font-size: calc(2em + 0.5vw);
+    font-weight: bold;
+    margin-bottom: 1rem;
+    line-height: 1.1;
+    margin-left: 1rem;
+    margin-right: 1rem;
+}
+
+.desktopServicesContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 36px;
+}
+
+.desktopServicesHeader {
+    font-size: 42px;
+    font-weight: bold;
+    margin-bottom: 24px;
+}
+
+.desktopServicesListItemContainer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 48px;
+}
+
+.desktopServicesImageContainerLeft {
+    margin-right: 16px;
+}
+
+.desktopServicesImage {
+    border-radius: 16px;
+}
+
+.desktopServicesListItem {
+    display: flex;
+    flex-direction: column;
+    font-size: 20px;
+}
+
+.desktopServicesListItemTitle {
+    font-size: 26px;
+    font-weight: bold;
+}
+
+.desktopServicesList {
+    margin-left: 16px;
+    text-align: left;
+}
+
+.desktopServicesImageContainerRight {
+    margin-left: 16px;
+}
+
+.desktopContactsContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-bottom: 48px;
+}
+
+.desktopContactsHeader {
+    font-size: 42px;
+    font-weight: bold;
+}
+
+.desktopContactsMapHeaderContainer {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    margin-top: 16px;
+    margin-bottom: 16px;
+}
+
+.desktopContactsMapHeaderText {
+    font-size: 20px;
+}
+
+.desktopContactsBodyContainer {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.desktopContactsMapContainer {
+    margin-right: 16px;
+    cursor: pointer;
+}
+
+.desktopContactsSocialsContainer {
+    text-align: left;
+    font-size: 26px;
+}
+
+.mobileContainer {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    margin-left: 1rem;
+    margin-right: 1rem;
+}
+
+.mobileHeaderNameContainer {
+    display: flex;
+    flex-direction: row;
+    margin-top: -3rem; /* -3rem */
+    margin-bottom: -4rem; /* -5rem */
+    font-family: var(--font-signature);
+    font-size: calc(5em + 15vw);
+}
+
+.mobileHeaderName {
+    margin-left: 1rem;
+}
+
+.mobileHeaderPhoto {
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.mobilePersonalContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-items: center;
+    margin-left: 1rem;
+    margin-right: 1rem;
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+.mobilePersonalText {
+    font-weight: bold;
+    font-size: calc(1em + 1vw);
+}
+
+.mobilePersonalListItem {
+    font-size: calc(1em + 1vw);
+    text-align: center;
+}
+
+.mobileCommentsContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.mobileCommentsHeader {
+    font-size: calc(2em + 0.5vw);
+    font-weight: bold;
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+    width: 80%;
+    line-height: 1.1;
+}
+
+.mobileServicesHeader {
+    font-size: calc(2em + 1vw);
+    font-weight: bold;
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+}
+
+.mobileServiceContainer {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    margin-left: 1rem;
+    margin-right: 1rem;
+    margin-bottom: 20px;
+}
+
+.mobileServicesImageContainer {
+    width: 80vw;
+    height: 45vw;
+    max-width: 32rem;
+    max-height: 18rem;
+    margin-bottom: 10px;
+}
+
+.mobileServicesImage {
+    border-radius: 16px;
+}
+
+.mobileServiceTextTitle {
+    font-size: calc(1.1em + 1vw);
+    font-weight: bold;
+    text-align: center;
+}
+
+.mobileServiceTextBody {
+    font-size: calc(0.8em + 1vw);
+    text-align: left;
+}
+
+.mobileContactsContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-bottom: 48px;
+}
+
+.mobileContactsHeader {
+    font-size: calc(2em + 1vw);
+    font-weight: bold;
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.mobileContactsBodyContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: left;
+    font-size: calc(1em + 1vw);
+}
+
+.mobileContactsMapContainer {
+    display: flex;
+    flex-direction: column;
+    align-content: center;
+    justify-content: center;
+}
+
+.mobileContactsMapHeader {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+.mobileContactsMapHeaderText {
+    font-size: calc(0.5em + 3vw);
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.mobileContactsMapBody {
+    cursor: pointer;
+    display: flex;
+    align-content: center;
+    justify-content: center;
+    margin-bottom: 3rem;
+}
+
+.mobileSwitch {
+    margin-left: 10px;
+    margin-right: 10px;
+    color: #e9ecef;
+}
+
+.checkedList {
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: column;
+    justify-content: center;
+    white-space: normal;
+    list-style-image: url(/images/svg/check.svg);
+    list-style-position: inside;
+    /**
+     * These are set to zero due to Chrome's
+     * user agent stylesheets
+     */
+    margin: 0;
+    padding: 0;
+}
