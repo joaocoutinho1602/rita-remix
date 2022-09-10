@@ -46,6 +46,7 @@ export const action: ActionFunction = async (args) => {
             return { code: 200, message: 'OK' };
         })
         .catch((error) => {
+            console.log("/routes/api/email.ts ~ line 49 ~ error", error)
             return new Response(error, { status: 500 });
         });
 };
