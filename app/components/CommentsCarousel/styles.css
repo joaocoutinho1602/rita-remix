@@ -1,0 +1,21 @@
+.commentContainer {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    color: gray;
+    margin-top: 0.5rem;
+}
+
+.commentText {
+    text-align: center;
+    font-size: calc(1em + 0.25vw);
+}
+
+.commentType {
+    text-align: left;
+}
+
+.commentDateLocation {
+    text-align: right;
+}

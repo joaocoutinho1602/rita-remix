@@ -49,10 +49,6 @@ export function ContactModal({ desktop }: ContactModalProps) {
     async function sendEmail(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
 
-        if (form.validate().hasErrors) {
-            return;
-        }
-
         const { name, email, phone, description } = form.values;
 
         setSending(true);
@@ -129,6 +125,7 @@ export function ContactModal({ desktop }: ContactModalProps) {
                         placeholder={form.errors.name ? '' : 'Joana Silva'}
                         label="Nome"
                         sx={(theme) => ({ marginBottom: theme.spacing.md })}
+                        validateInputOnChange
                         {...form.getInputProps('name')}
                     />
                     <TextInput
@@ -137,17 +134,18 @@ export function ContactModal({ desktop }: ContactModalProps) {
                         }
                         label="Email"
                         sx={(theme) => ({ marginBottom: theme.spacing.md })}
+                        validateInputOnChange
                         {...form.getInputProps('email')}
                     />
                     <TextInput
                         placeholder={form.errors.phone ? '' : '912345678'}
                         label="Telefone"
                         sx={(theme) => ({ marginBottom: theme.spacing.xl })}
+                        validateInputOnChange
                         {...form.getInputProps('phone')}
                     />
                     <Textarea
-                        placeholder="Escreva sobre o motivo do seu contacto,
-                    ou peça mais informações"
+                        placeholder="Escreva sobre o motivo do seu contacto, ou peça mais informações"
                         autosize
                         minRows={5}
                         {...form.getInputProps('description')}
@@ -185,6 +183,7 @@ const classes = {
         backgroundColor: '#495057',
         transition: 'all 0.2s ease-in-out',
         '&:hover': { backgroundColor: '#adb5bd' },
+        margin: '0.5rem',
     },
     sendButton: {
         marginTop: '1.5rem',

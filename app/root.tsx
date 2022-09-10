@@ -30,6 +30,7 @@ export const meta: MetaFunction = () => ({
     viewport: 'width=device-width,initial-scale=1',
     description:
         'Consultas de psicologia em Braga e Viana do Castelo. Não abdiques da tua saúde mental!',
+    'Content-Security-Policy': `default-src 'self' https://vitals.vercel-insights.com`,
 });
 
 export const links: LinksFunction = () => {

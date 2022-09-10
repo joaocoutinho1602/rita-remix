@@ -1,4 +1,4 @@
-export { CommentsCarousel } from './CommentsCarousel';
+export { CommentsCarousel, CommentsCarouselLinks } from './CommentsCarousel';
 export { ContactModal, ContactModalLinks } from './ContactModal';
 export { CustomMap } from './CustomMap';
 export { List, ListLinks } from './List';

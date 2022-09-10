@@ -1,1 +1,4 @@
-export { CommentsCarousel } from './CommentsCarousel';
+export {
+    CommentsCarousel,
+    links as CommentsCarouselLinks,
+} from './CommentsCarousel';

@@ -16,6 +16,7 @@ import { Portrait, PortraitSmall } from 'public/images';
 
 import {
     CommentsCarousel,
+    CommentsCarouselLinks,
     ContactModal,
     ContactModalLinks,
     CustomMap,
@@ -31,6 +32,7 @@ import { useLoader } from '~/hooks/useLoader';
 
 export function links() {
     return [
+        ...CommentsCarouselLinks(),
         ...ContactModalLinks(),
         ...SocialLinkLinks(),
         { rel: 'stylesheet', href: styles },
@@ -77,7 +79,7 @@ export default function Index() {
                         />
                         <div className="desktopHeaderCVButtonContainer">
                             <div className="desktopHeaderTextBold">
-                                Consultas Presenciais ou Online
+                                Consultas de Psicologia Presenciais ou Online
                                 <div className="desktopLocationContainer">
                                     <img
                                         alt="pin"
@@ -220,7 +222,7 @@ export default function Index() {
                         alt="Rita Meira"
                     />
                     <div className="mobilePersonalText">
-                        Consultas Presenciais ou Online
+                        Consultas de Psicologia
                         <br />
                         <img
                             alt="pin"
@@ -229,6 +231,8 @@ export default function Index() {
                             width={30}
                         />
                         Viana do Castelo / Braga
+                        <br />
+                        Consultas online
                     </div>
                     <ContactModal />
                     <div className="mobilePersonalContainer">
