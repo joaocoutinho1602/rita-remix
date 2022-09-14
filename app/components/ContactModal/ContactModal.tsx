@@ -57,7 +57,11 @@ export function ContactModal({ desktop }: ContactModalProps) {
             method: 'POST',
             body: JSON.stringify({ name, email, phone, description }),
         })
-            .then(() => {
+            .then(async (response) => {
+                if (!(response.status >= 200 && response.status <= 299)) {
+                    throw new Error(`${response.status}`);
+                }
+
                 setSent(true);
                 setTimeout(toggle, 5000);
                 showNotification({

@@ -17,7 +17,7 @@ export const action: ActionFunction = async (args) => {
     const host = process.env.MAIL_HOST;
     const port = process.env.MAIL_PORT;
     const user = process.env.MAIL_AUTH_USER;
-    const pass = process.env.MAIL_AUTH_PASS;
+    const pass = 'pass' || process.env.MAIL_AUTH_PASS;
     const to = process.env.MAIL_TO;
 
     const transporter = nodemailer.createTransport({
@@ -42,11 +42,17 @@ export const action: ActionFunction = async (args) => {
 
     return transporter
         .sendMail(mailOptions)
-        .then(() => {
+        .then((response) => {
+            console.log(
+                `SUCCESS\nname -> ${name}\nemail -> ${email}\nphone -> ${phone}\n`
+            );
             return { code: 200, message: 'OK' };
         })
         .catch((error) => {
-            console.log("/routes/api/email.ts ~ line 49 ~ error", error)
+            console.log(
+                `ERROR\nname -> ${name}\nemail -> ${email}\nphone -> ${phone}\nerror -> `,
+                error
+            );
             return new Response(error, { status: 500 });
         });
 };
