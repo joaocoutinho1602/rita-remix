@@ -17,7 +17,7 @@ export const action: ActionFunction = async (args) => {
     const host = process.env.MAIL_HOST;
     const port = process.env.MAIL_PORT;
     const user = process.env.MAIL_AUTH_USER;
-    const pass = 'pass' || process.env.MAIL_AUTH_PASS;
+    const pass = process.env.MAIL_AUTH_PASS;
     const to = process.env.MAIL_TO;
 
     const transporter = nodemailer.createTransport({
