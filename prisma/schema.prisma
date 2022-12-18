@@ -1,0 +1,105 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+datasource db {
+  provider             = "mysql"
+  url                  = env("DATABASE_URL")
+  referentialIntegrity = "prisma"
+}
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["referentialIntegrity"]
+}
+
+model User {
+  email     String   @unique
+  password  String
+  firstName String
+  lastName  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  doctor    Doctor?
+  client    Client?
+  // locations    Location[]
+}
+
+model Client {
+  user      User      @relation(fields: [userEmail], references: [email])
+  userEmail String    @unique
+  patients  Patient[]
+}
+
+model Patient {
+  id          String @unique @default(uuid())
+  userEmail   String
+  client      Client @relation(fields: [userEmail], references: [userEmail])
+  ofDoctor    Doctor @relation(fields: [doctorEmail], references: [userEmail])
+  doctorEmail String
+}
+
+model Doctor {
+  id                String      @id @unique @default(uuid())
+  user              User        @relation(fields: [userEmail], references: [email])
+  userEmail         String      @unique
+  doctorSpecialtyId String
+  googleData        GoogleData?
+  patients          Patient[]
+}
+
+model DoctorSpecialty {
+  id   String @id @unique @default(uuid())
+  name String
+}
+
+// Data pertaining to the Google account of a given Doctor
+model GoogleData {
+  id           String     @id @unique @default(uuid())
+  doctor       Doctor     @relation(fields: [doctorId], references: [id])
+  doctorId     String     @unique
+  refreshToken String
+  calendars    Calendar[]
+}
+
+// A given Google calendar of a Doctor's GoogleData
+model Calendar {
+  id               String      @id @unique @default(uuid())
+  googleCalendarId String
+  isMediciCalendar Boolean     @default(false)
+  GoogleData       GoogleData? @relation(fields: [googleDataId], references: [id])
+  googleDataId     String?
+}
+
+// model Location {
+//   id        String @id @default(uuid())
+//   address   String @default("")
+//   User      User   @relation(fields: [userEmail], references: [email])
+//   userEmail String
+// }
+
+// model Appointment {
+//   id       String          @id @unique @default(uuid())
+//   date     DateTime        @default(now())
+//   type     AppointmentType @default(INVIDIVUAL)
+//   duration Int             @default(6000) //60 minutes
+//   location String          @default("")
+// }
+
+// enum AppointmentType {
+//   INVIDIVUAL
+//   COUPLES
+// }
+
+// model Client {
+//   id      String     @id @unique @default(uuid())
+//   type    ClientType @default(INDIVIDUAL)
+//   name    String     @default("")
+//   email   String     @default("")
+//   phone   String     @default("")
+//   address String     @default("")
+// }
+
+// enum ClientType {
+//   INDIVIDUAL
+//   COUPLES
+// }

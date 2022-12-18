@@ -202,7 +202,7 @@ export const theme: MantineThemeBase = {
         dark: 8,
     },
     focusRing: 'auto',
-    loader: 'oval',
+    loader: 'dots',
     dateFormat: 'MMMM D, YYYY',
     colorScheme: 'light',
     white: '#fff',

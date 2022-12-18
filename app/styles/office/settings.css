@@ -1,0 +1,20 @@
+.calendar {
+    display: grid;
+    row-gap: 1rem;
+}
+
+.row {
+    display: grid;
+    grid-template-rows: auto;
+    grid-template-columns: auto auto 1fr 5fr;
+    gap: 1rem;
+    grid-template-areas: 'checkbox color summary description';
+    justify-content: center;
+    align-items: center;
+}
+
+.summary {
+    grid-area: summary;
+    word-wrap: break-all;
+    overflow: auto;
+}

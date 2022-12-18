@@ -1,0 +1,44 @@
+.container {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.formContainer {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.inputLabelContainer {
+    display: flex;
+    flex-direction: row;
+}
+
+.label {
+    margin-right: 0.5rem;
+}
+
+.sendButton {
+    margin-top: 1.5rem;
+    font-size: 20;
+    font-weight: 500;
+    background-color: #37b24d;
+    transition: 'all 0.2s ease-in-out';
+}
+
+.popoverDropdown {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+}

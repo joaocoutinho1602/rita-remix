@@ -22,6 +22,7 @@ export function ContactModal({ desktop }: ContactModalProps) {
     const [sent, setSent] = useState(false);
 
     const form = useForm({
+        validateInputOnBlur: true,
         initialValues: {
             name: '',
             email: '',

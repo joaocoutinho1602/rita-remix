@@ -1,0 +1,56 @@
+.header {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    height: 100%;
+}
+
+.logo {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+}
+
+.calendarAction {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+    font-size: calc(1em + 0.25vw);
+}
+
+.calendarActionText {
+    margin-left: 0.5rem;
+    color: black;
+    text-decoration: none;
+}
+
+.quickActions {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+}
+
+.quickAction {
+    display: flex;
+    flex-direction: row;
+    cursor: pointer;
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+}
+
+.quickActionText {
+    margin-left: 0.5rem;
+    color: black;
+    text-decoration: none;
+}
+
+.loaderCenterer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 50vh;
+}

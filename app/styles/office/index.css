@@ -1,0 +1,14 @@
+.headerLoaderContainer {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.googleAccountAssociationContainer {
+    display: flex;
+    flex-direction: column;
+}
+
+.googleAuthorizationLink {
+    color: #1c7ed6;
+}

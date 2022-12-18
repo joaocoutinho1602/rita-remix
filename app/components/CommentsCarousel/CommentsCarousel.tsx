@@ -11,7 +11,7 @@ import { useViewportSize } from '@mantine/hooks';
 import { IconStar } from '@tabler/icons';
 
 import styles from './styles.css';
-import { comments } from '~/utils/data';
+import { comments } from '~/utils/client/data';
 
 type CommentsCarouselProps = {
     mobile?: boolean;

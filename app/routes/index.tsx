@@ -1,9 +1,5 @@
 import { useState } from 'react';
 
-// import { useLoaderData, useNavigate } from '@remix-run/react';
-// import type { LoaderFunction } from '@remix-run/node';
-// import { json } from '@remix-run/node';
-
 import { Affix, Switch, Transition } from '@mantine/core';
 import {
     useMediaQuery,
@@ -24,7 +20,7 @@ import {
     SocialLinkLinks,
 } from '~/components';
 
-import { cv, services, socials } from '~/utils/data';
+import { cv, services, socials } from '~/utils/client/data';
 
 
 import styles from '../styles/root.css';
@@ -39,14 +35,7 @@ export function links() {
     ];
 }
 
-// export const loader: LoaderFunction = async () => {
-//     console.log('index loader');
-//     return json({ fuck: 'me' });
-// }
-
 export default function Index() {
-    // const data = useLoaderData<typeof loader>();
-
     const reload = useLoader();
 
     const [toggle, setToggle] = useState(false);

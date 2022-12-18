@@ -2,15 +2,13 @@ import type { ActionFunction } from '@remix-run/node';
 
 import nodemailer from 'nodemailer';
 
-export const action: ActionFunction = async (args) => {
-    console.log(process.env.MAIL_HOST);
-
+export const action: ActionFunction = async ({ request }) => {
     const body: {
         name: string;
         email: string;
         phone: number;
         description: string;
-    } = await args.request.json();
+    } = await request.json();
 
     const { name, email, phone, description } = body;
 
@@ -43,14 +41,11 @@ export const action: ActionFunction = async (args) => {
     return transporter
         .sendMail(mailOptions)
         .then((response) => {
-            console.log(
-                `SUCCESS\nname -> ${name}\nemail -> ${email}\nphone -> ${phone}\n`
-            );
             return { code: 200, message: 'OK' };
         })
         .catch((error) => {
             console.log(
-                `ERROR\nname -> ${name}\nemail -> ${email}\nphone -> ${phone}\nerror -> `,
+                `🚀 ~ file: /api/email.ts ~ nodemailer error\n\nname -> ${name}\nemail -> ${email}\nphone -> ${phone}\n\nerror -> `,
                 error
             );
             return new Response(error, { status: 500 });
