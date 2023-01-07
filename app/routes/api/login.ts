@@ -111,8 +111,10 @@ export const action: ActionFunction = async ({ request }) => {
                 });
 
                 return new Response(undefined, {
-                    status: ErrorCodes.INTERNAL_SERVER_ERROR,
-                    statusText: LoginErrors.EMAIL_NOT_REGISTERED,
+                    status: ErrorCodes.CUSTOM_ERROR,
+                    headers: {
+                        statusText: LoginErrors.EMAIL_NOT_REGISTERED,
+                    },
                 });
             }
             case LoginErrors.WRONG_HASH: {
