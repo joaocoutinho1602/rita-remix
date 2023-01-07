@@ -111,7 +111,7 @@ export const action: ActionFunction = async ({ request }) => {
                 });
 
                 return new Response(undefined, {
-                    status: ErrorCodes.CUSTOM_ERROR,
+                    status: ErrorCodes.INTERNAL_SERVER_ERROR,
                     statusText: LoginErrors.EMAIL_NOT_REGISTERED,
                 });
             }
