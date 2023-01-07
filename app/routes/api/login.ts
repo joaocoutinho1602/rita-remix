@@ -86,24 +86,48 @@ export const action: ActionFunction = async ({ request }) => {
     } catch (error) {
         switch (error) {
             case LoginErrors.EMAIL_NOT_REGISTERED: {
+                logError({
+                    filePath: '/api/login.ts',
+                    message: LoginErrors.EMAIL_NOT_REGISTERED,
+                    error,
+                });
+
                 return new Response(undefined, {
                     status: ErrorCodes.CUSTOM_ERROR,
                     statusText: LoginErrors.EMAIL_NOT_REGISTERED,
                 });
             }
             case LoginErrors.WRONG_HASH: {
+                logError({
+                    filePath: '/api/login.ts',
+                    message: LoginErrors.WRONG_HASH,
+                    error,
+                });
+
                 return new Response(undefined, {
                     status: ErrorCodes.CUSTOM_ERROR,
                     statusText: LoginErrors.WRONG_HASH,
                 });
             }
             case LoginErrors.WRONG_PASSWORD: {
+                logError({
+                    filePath: '/api/login.ts',
+                    message: LoginErrors.WRONG_PASSWORD,
+                    error,
+                });
+
                 return new Response(undefined, {
                     status: ErrorCodes.CUSTOM_ERROR,
                     statusText: LoginErrors.WRONG_PASSWORD,
                 });
             }
             case GenericErrors.PRISMA_ERROR: {
+                logError({
+                    filePath: '/api/login.ts',
+                    message: GenericErrors.PRISMA_ERROR,
+                    error,
+                });
+
                 return new Response(undefined, {
                     status: ErrorCodes.CUSTOM_ERROR,
                     statusText: GenericErrors.PRISMA_ERROR,
