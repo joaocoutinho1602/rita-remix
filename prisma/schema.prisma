@@ -4,12 +4,11 @@
 datasource db {
   provider             = "mysql"
   url                  = env("DATABASE_URL")
-  referentialIntegrity = "prisma"
+  relationMode = "prisma"
 }
 
 generator client {
   provider        = "prisma-client-js"
-  previewFeatures = ["referentialIntegrity"]
 }
 
 model User {
@@ -36,6 +35,9 @@ model Patient {
   client      Client @relation(fields: [userEmail], references: [userEmail])
   ofDoctor    Doctor @relation(fields: [doctorEmail], references: [userEmail])
   doctorEmail String
+
+  @@index([userEmail])
+  @@index([doctorEmail])
 }
 
 model Doctor {
@@ -68,6 +70,8 @@ model Calendar {
   isMediciCalendar Boolean     @default(false)
   GoogleData       GoogleData? @relation(fields: [googleDataId], references: [id])
   googleDataId     String?
+
+  @@index([googleDataId])
 }
 
 // model Location {
