@@ -48,12 +48,19 @@ export const loader: LoaderFunction = async ({ request }) => {
         }
 
         if (googleRefreshToken?.length) {
+            console.log(
+                '🚀 ~ file: index.tsx:51 ~ googleRefreshToken',
+                googleRefreshToken
+            );
+
             setCredentials({ refreshToken: googleRefreshToken });
 
             const url = new URL(request.url);
+            console.log('🚀 ~ file: index.tsx:55 ~ url', url);
 
             const selection =
                 url.searchParams.get('selection') || dayjs().toISOString();
+            console.log('🚀 ~ file: index.tsx:58 ~ selection', selection);
 
             /**
              *? Daylight Savings Time requires 1 hour to be added
@@ -64,10 +71,12 @@ export const loader: LoaderFunction = async ({ request }) => {
                 .startOf('month')
                 .add(1, 'hour')
                 .toISOString();
+            console.log('🚀 ~ file: index.tsx:70 ~ timeMin', timeMin);
             const timeMax = dayjs(selection)
                 .add(2, 'month')
                 .endOf('month')
                 .toISOString();
+            console.log('🚀 ~ file: index.tsx:76 ~ timeMax', timeMax);
 
             const user = await db.user
                 .findUnique({
@@ -89,6 +98,7 @@ export const loader: LoaderFunction = async ({ request }) => {
 
                     throw GenericErrors.PRISMA_ERROR;
                 });
+            console.log('🚀 ~ file: index.tsx:101 ~ user', user)
 
             const allCalendarsEvents = await Promise.all(
                 (user?.doctor?.googleData?.calendars || []).map(
@@ -111,6 +121,7 @@ export const loader: LoaderFunction = async ({ request }) => {
                             })
                 )
             );
+            console.log('🚀 ~ file: index.tsx:124 ~ allCalendarsEvents', allCalendarsEvents)
 
             const uniqueEvents = uniqBy(
                 allCalendarsEvents.flatMap((item) =>
@@ -118,6 +129,7 @@ export const loader: LoaderFunction = async ({ request }) => {
                 ),
                 (event) => event.id
             );
+            console.log('🚀 ~ file: index.tsx:132 ~ uniqueEvents', uniqueEvents)
 
             const reductionInitialValue: LoaderEvents = {};
 
@@ -136,6 +148,7 @@ export const loader: LoaderFunction = async ({ request }) => {
 
                 return res;
             }, reductionInitialValue);
+            console.log('🚀 ~ file: index.tsx:151 ~ events', events)
 
             return json({ events });
         } else {
@@ -148,8 +161,10 @@ export const loader: LoaderFunction = async ({ request }) => {
                     method: 'GET',
                 }
             );
+            console.log('🚀 ~ file: index.tsx:164 ~ response', response)
 
             const { googleAuthorizationUrl } = await response.json();
+            console.log('🚀 ~ file: index.tsx:167 ~ googleAuthorizationUrl', googleAuthorizationUrl)
 
             return json({ googleAuthorizationUrl });
         }
