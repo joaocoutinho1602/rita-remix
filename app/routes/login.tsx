@@ -150,12 +150,12 @@ export default function Login() {
             body: JSON.stringify({ email, password, keepLoggedIn }),
         })
             .then(async (response) => {
-                if (response.status >= 400) {
-                    throw GenericErrors.UNKNOWN_ERROR;
-                }
-
                 if (response.status === ErrorCodes.CUSTOM_ERROR) {
                     throw response.headers.get('statusText');
+                }
+
+                if (response.status >= 400) {
+                    throw GenericErrors.UNKNOWN_ERROR;
                 }
 
                 flushSync(() => setRedirecting(true));
