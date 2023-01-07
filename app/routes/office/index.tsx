@@ -50,24 +50,24 @@ export const loader: LoaderFunction = async ({ request }) => {
         if (googleRefreshToken?.length) {
             setCredentials({ refreshToken: googleRefreshToken });
 
-            // const url = new URL(request.url);
+            const url = new URL(request.url);
 
-            // const selection =
-            //     url.searchParams.get('selection') || dayjs().toISOString();
+            const selection =
+                url.searchParams.get('selection') || dayjs().toISOString();
 
             /**
              *? Daylight Savings Time requires 1 hour to be added
              *? Thils will eventually have to be revised and standardised for all timezones in all countries and accounting for DST
              */
-            // const timeMin = dayjs(selection)
-            //     .subtract(0, 'month')
-            //     .startOf('month')
-            //     .add(1, 'hour')
-            //     .toISOString();
-            // const timeMax = dayjs(selection)
-            //     .add(0, 'month')
-            //     .endOf('month')
-            //     .toISOString();
+            const timeMin = dayjs(selection)
+                .subtract(0, 'month')
+                .startOf('month')
+                .add(1, 'hour')
+                .toISOString();
+            const timeMax = dayjs(selection)
+                .add(0, 'month')
+                .endOf('month')
+                .toISOString();
 
             const user = await db.user
                 .findUnique({
@@ -97,13 +97,13 @@ export const loader: LoaderFunction = async ({ request }) => {
                             .list({
                                 auth: googleAuthClient,
                                 calendarId: googleCalendarId as string,
-                                // timeMin,
-                                // timeMax,
+                                timeMin,
+                                timeMax,
                             })
                             .catch(async (error) => {
                                 logError({
                                     filePath: '/office/index.tsx',
-                                    message: `googleCalendarAPI.events error ~ calendarId: ${googleCalendarId}`,
+                                    message: `googleCalendarAPI.events error ~ calendarId: ${googleCalendarId}, timeMin: ${timeMin}, timeMax: ${timeMax}`,
                                     error,
                                 });
 
@@ -116,9 +116,12 @@ export const loader: LoaderFunction = async ({ request }) => {
                 allCalendarsEvents.flatMap((item) =>
                     item ? item?.data?.items || [] : []
                 ),
-                (event) => event.start?.dateTime
+                (event) => event.start?.dateTime || event.start?.date
             ).filter((event) => event.organizer);
-            console.log('🚀 ~ file: index.tsx:125 ~ uniqueEvents', uniqueEvents)
+            console.log(
+                '🚀 ~ file: index.tsx:125 ~ uniqueEvents',
+                uniqueEvents.map(({ summary }) => ({ summary }))
+            );
 
             const reductionInitialValue: LoaderEvents = {};
 
@@ -268,11 +271,7 @@ export default function OfficeIndex() {
             {value && events?.[makeActualDate(value)]?.length ? (
                 <div>
                     {events?.[makeActualDate(value)].map(
-                        (
-                            { id, summary, description, source, organizer },
-                            index,
-                            array
-                        ) => (
+                        ({ id, summary, description, source, organizer }, index, array) => (
                             <div key={id}>
                                 <div>Título: {summary}</div>
                                 <div>Descrição: {description}</div>
