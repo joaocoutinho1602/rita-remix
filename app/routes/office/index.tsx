@@ -111,6 +111,7 @@ export const loader: LoaderFunction = async ({ request }) => {
                             })
                 )
             );
+            console.log('🚀 ~ file: index.tsx:114 ~ allCalendarsEvents', allCalendarsEvents)
 
             const uniqueEvents = uniqBy(
                 allCalendarsEvents.flatMap((item) =>
@@ -118,6 +119,7 @@ export const loader: LoaderFunction = async ({ request }) => {
                 ),
                 (event) => event.id
             );
+            console.log('🚀 ~ file: index.tsx:122 ~ uniqueEvents', uniqueEvents)
 
             const reductionInitialValue: LoaderEvents = {};
 
@@ -136,6 +138,7 @@ export const loader: LoaderFunction = async ({ request }) => {
 
                 return res;
             }, reductionInitialValue);
+            console.log('🚀 ~ file: index.tsx:141 ~ events', events)
 
             return json({ events });
         } else {
