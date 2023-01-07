@@ -397,7 +397,6 @@ export default function Settings() {
                                 />
                                 <ColorSwatch color={backgroundColor} />
                                 <div className="summary">{summary}</div>
-                                <div>{description || 'Sem descrição'}</div>
                             </div>
                         )
                     )}

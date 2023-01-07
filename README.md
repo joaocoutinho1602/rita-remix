@@ -28,6 +28,9 @@ Open up [http://localhost:3000](http://localhost:3000)
 
 ## TODOs
 
+CRITICAL:
+1. Fix Google account association to use email used to login into Goole instead of email stored in session
+
 Refactoring:
 
 1. Migrate client-side JS interaction functions into Remix actions (/office)
