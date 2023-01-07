@@ -268,10 +268,14 @@ export default function OfficeIndex() {
             {value && events?.[makeActualDate(value)]?.length ? (
                 <div>
                     {events?.[makeActualDate(value)].map(
-                        ({ id, summary, description }, index, array) => (
+                        ({ id, summary, description, source, organizer }, index, array) => (
                             <div key={id}>
                                 <div>Título: {summary}</div>
                                 <div>Descrição: {description}</div>
+                                <div>Source title: {source?.title}</div>
+                                <div>Source url: {source?.url}</div>
+                                <div>Organizer: {organizer?.displayName}</div>
+                                <div>Email: {organizer?.email}</div>
                                 {array.length - 1 !== index ? <br /> : null}
                             </div>
                         )
