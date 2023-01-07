@@ -126,7 +126,9 @@ export const action: ActionFunction = async ({ request }) => {
 
                 return new Response(undefined, {
                     status: ErrorCodes.CUSTOM_ERROR,
-                    statusText: LoginErrors.WRONG_HASH,
+                    headers: {
+                        statusText: LoginErrors.WRONG_HASH,
+                    },
                 });
             }
             case LoginErrors.WRONG_PASSWORD: {
@@ -138,7 +140,9 @@ export const action: ActionFunction = async ({ request }) => {
 
                 return new Response(undefined, {
                     status: ErrorCodes.CUSTOM_ERROR,
-                    statusText: LoginErrors.WRONG_PASSWORD,
+                    headers: {
+                        statusText: LoginErrors.WRONG_PASSWORD,
+                    },
                 });
             }
             case GenericErrors.PRISMA_ERROR: {
@@ -150,7 +154,9 @@ export const action: ActionFunction = async ({ request }) => {
 
                 return new Response(undefined, {
                     status: ErrorCodes.CUSTOM_ERROR,
-                    statusText: GenericErrors.PRISMA_ERROR,
+                    headers: {
+                        statusText: GenericErrors.PRISMA_ERROR,
+                    },
                 });
             }
             default: {
@@ -162,7 +168,9 @@ export const action: ActionFunction = async ({ request }) => {
 
                 return new Response(undefined, {
                     status: ErrorCodes.CUSTOM_ERROR,
-                    statusText: GenericErrors.UNKNOWN_ERROR,
+                    headers: {
+                        statusText: GenericErrors.UNKNOWN_ERROR,
+                    },
                 });
             }
         }

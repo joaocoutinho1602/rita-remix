@@ -24,6 +24,7 @@ import {
     LoginErrors,
     SuccessCodes,
     getSession,
+    GenericErrors,
 } from '~/utils/common';
 
 import styles from '~/styles/login.css';
@@ -149,11 +150,12 @@ export default function Login() {
             body: JSON.stringify({ email, password, keepLoggedIn }),
         })
             .then(async (response) => {
-                console.log('🚀 ~ file: login.tsx:152 ~ response', response)
-                console.log('🚀 ~ file: login.tsx:155 ~ response.headers.get("statusText")', response.headers.get("statusText"))
+                if (response.status >= 400) {
+                    throw GenericErrors.UNKNOWN_ERROR;
+                }
+
                 if (response.status === ErrorCodes.CUSTOM_ERROR) {
-                    response.headers.get("statusText")
-                    throw response.statusText;
+                    throw response.headers.get('statusText');
                 }
 
                 flushSync(() => setRedirecting(true));
@@ -177,6 +179,9 @@ export default function Login() {
             })
             .catch((message) => {
                 switch (message) {
+                    case GenericErrors.UNKNOWN_ERROR: {
+                        console.log('lida com este erro preguiçoso');
+                    }
                     default: {
                         setError(message);
                     }
