@@ -30,6 +30,9 @@ Open up [http://localhost:3000](http://localhost:3000)
 
 CRITICAL:
 1. Fix Google account association to use email used to login into Goole instead of email stored in session
+2. MOBILE - close hub after navigating
+3. MOBILE - fix CSS for hub (z-index to 999)
+4. MOBILE - fix window dimensions
 
 Refactoring:
 
