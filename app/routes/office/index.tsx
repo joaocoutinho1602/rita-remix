@@ -60,12 +60,12 @@ export const loader: LoaderFunction = async ({ request }) => {
              *? Thils will eventually have to be revised and standardised for all timezones in all countries and accounting for DST
              */
             const timeMin = dayjs(selection)
-                .subtract(2, 'month')
+                .subtract(0, 'month')
                 .startOf('month')
                 .add(1, 'hour')
                 .toISOString();
             const timeMax = dayjs(selection)
-                .add(2, 'month')
+                .add(0, 'month')
                 .endOf('month')
                 .toISOString();
 
@@ -119,7 +119,6 @@ export const loader: LoaderFunction = async ({ request }) => {
                 ),
                 (event) => event.id
             );
-            console.log('🚀 ~ file: index.tsx:122 ~ uniqueEvents', uniqueEvents)
 
             const reductionInitialValue: LoaderEvents = {};
 
@@ -138,7 +137,6 @@ export const loader: LoaderFunction = async ({ request }) => {
 
                 return res;
             }, reductionInitialValue);
-            console.log('🚀 ~ file: index.tsx:141 ~ events', events)
 
             return json({ events });
         } else {
