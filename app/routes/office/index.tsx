@@ -116,8 +116,8 @@ export const loader: LoaderFunction = async ({ request }) => {
                 allCalendarsEvents.flatMap((item) =>
                     item ? item?.data?.items || [] : []
                 ),
-                (event) => event.id
-            ).filter((event) => event?.organizer);
+                (event) => event.start?.dateTime
+            ).filter((event) => event.organizer);
             console.log('🚀 ~ file: index.tsx:125 ~ uniqueEvents', uniqueEvents)
 
             const reductionInitialValue: LoaderEvents = {};
