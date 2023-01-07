@@ -15,8 +15,26 @@ import { db } from '~/utils/server';
 
 export const action: ActionFunction = async ({ request }) => {
     try {
-        const sessionPromise = getSession(request.headers.get('Cookie'));
-        const bodyPromise = request.json();
+        const sessionPromise = getSession(request.headers.get('Cookie')).catch(
+            (error) => {
+                logError({
+                    filePath: '/api/login.ts',
+                    message: 'error getting session',
+                    error,
+                });
+
+                throw GenericErrors.UNKNOWN_ERROR;
+            }
+        );
+        const bodyPromise = request.json().catch((error) => {
+            logError({
+                filePath: '/api/login.ts',
+                message: 'error parsing request body',
+                error,
+            });
+
+            throw GenericErrors.UNKNOWN_ERROR;
+        });
 
         let [session, { email, password, keepLoggedIn, fromLocalStorage }] =
             await Promise.all([sessionPromise, bodyPromise]);

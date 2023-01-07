@@ -149,6 +149,7 @@ export default function Login() {
             body: JSON.stringify({ email, password, keepLoggedIn }),
         })
             .then(async (response) => {
+                console.log('🚀 ~ file: login.tsx:152 ~ response', response)
                 if (response.status === ErrorCodes.CUSTOM_ERROR) {
                     throw response.statusText;
                 }
