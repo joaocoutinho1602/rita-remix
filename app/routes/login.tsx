@@ -150,7 +150,9 @@ export default function Login() {
         })
             .then(async (response) => {
                 console.log('🚀 ~ file: login.tsx:152 ~ response', response)
+                console.log('🚀 ~ file: login.tsx:155 ~ response.headers.get("statusText")', response.headers.get("statusText"))
                 if (response.status === ErrorCodes.CUSTOM_ERROR) {
+                    response.headers.get("statusText")
                     throw response.statusText;
                 }
 
