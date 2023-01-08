@@ -5,12 +5,11 @@ import { json } from '@remix-run/node';
 import { redirect } from '@remix-run/node';
 import { useLoaderData, useNavigate, useTransition } from '@remix-run/react';
 
-import type { calendar_v3 } from 'googleapis';
 import dayjs from 'dayjs';
 import 'dayjs/locale/pt';
 import { uniqBy } from 'lodash';
 
-import { Indicator, Loader, Space } from '@mantine/core';
+import { Card, ColorSwatch, Indicator, Loader, Space } from '@mantine/core';
 import { Calendar } from '@mantine/dates';
 
 import { db } from '~/utils/server';
@@ -28,9 +27,12 @@ import {
 
 import styles from '~/styles/office/index.css';
 
-type LoaderEvents = {
-    [key: string]: calendar_v3.Schema$Event[];
-};
+import type { LoaderEvents } from '~/utils/server/functions/office.index.loader.server';
+import {
+    eventsByDay,
+    getEventsTimeSlice,
+    mapEventsWithColor,
+} from '~/utils/server/functions/office.index.loader.server';
 
 export function links() {
     return [{ rel: 'stylesheet', href: styles }];
@@ -49,25 +51,6 @@ export const loader: LoaderFunction = async ({ request }) => {
 
         if (googleRefreshToken?.length) {
             setCredentials({ refreshToken: googleRefreshToken });
-
-            const url = new URL(request.url);
-
-            const selection =
-                url.searchParams.get('selection') || dayjs().toISOString();
-
-            /**
-             *? Daylight Savings Time requires 1 hour to be added
-             *? Thils will eventually have to be revised and standardised for all timezones in all countries and accounting for DST
-             */
-            const timeMin = dayjs(selection)
-                .subtract(0, 'month')
-                .startOf('month')
-                .add(1, 'hour')
-                .toISOString();
-            const timeMax = dayjs(selection)
-                .add(0, 'month')
-                .endOf('month')
-                .toISOString();
 
             const user = await db.user
                 .findUnique({
@@ -90,56 +73,74 @@ export const loader: LoaderFunction = async ({ request }) => {
                     throw GenericErrors.PRISMA_ERROR;
                 });
 
-            const allCalendarsEvents = await Promise.all(
-                (user?.doctor?.googleData?.calendars || []).map(
-                    ({ googleCalendarId }) =>
-                        googleCalendarAPI.events
-                            .list({
-                                auth: googleAuthClient,
-                                calendarId: googleCalendarId as string,
-                                timeMin,
-                                timeMax,
-                            })
-                            .catch(async (error) => {
-                                logError({
-                                    filePath: '/office/index.tsx',
-                                    message: `googleCalendarAPI.events error ~ calendarId: ${googleCalendarId}, timeMin: ${timeMin}, timeMax: ${timeMax}`,
-                                    error,
-                                });
+            const userCalendars = user?.doctor?.googleData?.calendars || [];
 
-                                throw GoogleErrors.ERROR_FETCHING_EVENTS;
-                            })
-                )
+            const [timeMin, timeMax] = getEventsTimeSlice(request.url);
+
+            const allCalendarsPromise = googleCalendarAPI.calendarList
+                .list({ auth: googleAuthClient })
+                .catch(async (error) => {
+                    logError({
+                        filePath: '/office/index.tsx',
+                        message: 'googleCalendarAPI.calendarList error',
+                        error,
+                    });
+
+                    throw GoogleErrors.ERROR_FETCHING_EVENTS;
+                });
+
+            const allColorsPromise = googleCalendarAPI.colors
+                .get({ auth: googleAuthClient })
+                .catch(async (error) => {
+                    logError({
+                        filePath: '/office/index.tsx',
+                        message: 'googleCalendarAPI.calendarList error',
+                        error,
+                    });
+
+                    throw GoogleErrors.ERROR_FETCHING_EVENTS;
+                });
+
+            const allCalendarsEventsPromises = userCalendars.map(
+                ({ googleCalendarId }) =>
+                    googleCalendarAPI.events
+                        .list({
+                            auth: googleAuthClient,
+                            calendarId: googleCalendarId as string,
+                            timeMin,
+                            timeMax,
+                        })
+                        .catch(async (error) => {
+                            logError({
+                                filePath: '/office/index.tsx',
+                                message: `googleCalendarAPI.events error ~ calendarId: ${googleCalendarId}, timeMin: ${timeMin}, timeMax: ${timeMax}`,
+                                error,
+                            });
+
+                            throw GoogleErrors.ERROR_FETCHING_EVENTS;
+                        })
             );
 
-            const uniqueEvents = uniqBy(
-                allCalendarsEvents.flatMap((item) =>
-                    item ? item?.data?.items || [] : []
-                ),
-                (event) => event.start?.dateTime || event.start?.date
+            const [allColors, allCalendars, ...allCalendarsEvents] =
+                await Promise.all([
+                    allColorsPromise,
+                    allCalendarsPromise,
+                    ...allCalendarsEventsPromises,
+                ]);
+
+            const eventsWithColor = mapEventsWithColor(
+                userCalendars,
+                allCalendars,
+                allCalendarsEvents,
+                allColors
             ).filter((event) => event.organizer);
-            console.log(
-                '🚀 ~ file: index.tsx:125 ~ uniqueEvents',
-                uniqueEvents.map(({ summary }) => ({ summary }))
+
+            const uniqueEventsWithColor = uniqBy(
+                eventsWithColor,
+                (event) => event.start?.dateTime || event.start?.date
             );
 
-            const reductionInitialValue: LoaderEvents = {};
-
-            const events = uniqueEvents.reduce((acc, event) => {
-                const eventDay =
-                    event.start?.date ||
-                    dayjs(event.start?.dateTime).toISOString().split('T')[0];
-
-                /**
-                 *? We need to take all the events already assigned to a given day, push the new event into it, and create a new object with the new event assigned to this day
-                 */
-                const dayEvents = acc[eventDay] || [];
-                dayEvents.push(event);
-
-                const res = Object.assign({}, acc, { [eventDay]: dayEvents });
-
-                return res;
-            }, reductionInitialValue);
+            const events = eventsByDay(uniqueEventsWithColor);
 
             return json({ events });
         } else {
@@ -212,7 +213,7 @@ export default function OfficeIndex() {
     }, [transition.location?.search]);
 
     return (
-        <div>
+        <div className="container">
             <div className="headerLoaderContainer">
                 <h1>Calendário</h1>
                 <Space w="sm" />
@@ -255,7 +256,7 @@ export default function OfficeIndex() {
                         return (
                             <Indicator
                                 size={16}
-                                color="red"
+                                color="yellow"
                                 disabled={numberOfEvents === undefined}
                                 label={`${numberOfEvents}`}
                                 position="top-end"
@@ -269,19 +270,35 @@ export default function OfficeIndex() {
             )}
             <br />
             {value && events?.[makeActualDate(value)]?.length ? (
-                <div>
+                <div className="events">
                     {events?.[makeActualDate(value)].map(
-                        ({ id, summary, description, source, organizer }, index, array) => (
-                            <div key={id}>
-                                <div>Título: {summary}</div>
-                                <div>Descrição: {description}</div>
-                                <div>Source title: {source?.title}</div>
-                                <div>Source url: {source?.url}</div>
-                                <div>Organizer: {organizer?.displayName}</div>
-                                <div>Email: {organizer?.email}</div>
-                                {array.length - 1 !== index ? <br /> : null}
-                            </div>
-                        )
+                        ({ id, summary, start, end, color, location }, index, array) => {
+                            const startTime = dayjs(start?.dateTime).format(
+                                'HH:mm'
+                            );
+                            const endTime = dayjs(end?.dateTime).format(
+                                'HH:mm'
+                            );
+
+                            return (
+                                <div className="eventCardContainer" key={id}>
+                                    <Card withBorder radius="md">
+                                        <div className="colorSwatchTimeContainer">
+                                            {color.length ? (
+                                                <ColorSwatch
+                                                    size={20}
+                                                    color={color}
+                                                />
+                                            ) : null}
+                                            <div className="eventTime">{`${startTime} - ${endTime}`}</div>
+                                        </div>
+                                        <div>{summary}</div>
+                                        <div className='locationText'>{location}</div>
+                                    </Card>
+                                    <br />
+                                </div>
+                            );
+                        }
                     )}
                 </div>
             ) : null}

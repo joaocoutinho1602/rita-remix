@@ -1,3 +1,10 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
 .headerLoaderContainer {
     display: flex;
     flex-direction: row;
@@ -11,4 +18,27 @@
 
 .googleAuthorizationLink {
     color: #1c7ed6;
+}
+
+.events {
+    overflow-y: hidden;
+}
+
+.eventCardContainer {
+    min-width: 80vw;
+    max-width: 80vw;
+}
+
+.colorSwatchTimeContainer {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.eventTime {
+    margin-left: 0.5rem;
+}
+
+.locationText {
+    font-size: 12px;
 }

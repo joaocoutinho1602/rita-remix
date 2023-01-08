@@ -60,6 +60,7 @@ export const action: ActionFunction = async ({ request }) => {
 
                 throw GenericErrors.PRISMA_ERROR;
             });
+        console.log('🚀 ~ file: login.ts:63 ~ user', user)
 
         /**
          *? If the database returns no user, then the email is not registered

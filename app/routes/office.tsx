@@ -15,6 +15,7 @@ import {
     Loader,
     MediaQuery,
     Navbar,
+    ScrollArea,
 } from '@mantine/core';
 
 import { useLocalStorage } from '@mantine/hooks';
@@ -317,9 +318,14 @@ export default function Office() {
         });
     }
 
+    function toggleBurger() {
+        setBurgerOpened((o) => !o);
+    }
+
     return (
         <AppShell
             navbarOffsetBreakpoint="sm"
+            zIndex={999}
             header={
                 <Header height={70} p="md">
                     <Group sx={{ height: '100%' }} px={20} position="apart">
@@ -329,7 +335,7 @@ export default function Office() {
                         >
                             <Burger
                                 opened={burgerOpened}
-                                onClick={() => setBurgerOpened((o) => !o)}
+                                onClick={toggleBurger}
                                 size="sm"
                                 color="#1A1B1E"
                                 mr="xl"
@@ -350,75 +356,91 @@ export default function Office() {
                     hidden={!burgerOpened}
                     width={{ sm: 200, lg: 300 }}
                 >
-                    <Navbar.Section>
-                        <div className="calendarAction">
-                            <IconCalendar />
-                            <Link className="calendarActionText" to="/office">
-                                Calendário
-                            </Link>
-                        </div>
-                    </Navbar.Section>
-                    <Divider
-                        style={{ marginTop: '1rem', marginBottom: '1rem' }}
-                    />
-                    <Navbar.Section>
-                        <div className="quickActions">
-                            <div className="quickAction">
-                                <IconCalendarPlus />
-                                <div className="quickActionText">
-                                    Agendar consulta
+                    <ScrollArea style={{ height: '100%' }} type="never">
+                        <Navbar.Section>
+                            <div className="calendarAction">
+                                <IconCalendar />
+                                <Link
+                                    className="calendarActionText"
+                                    to="/office"
+                                    onClick={toggleBurger}
+                                >
+                                    Calendário
+                                </Link>
+                            </div>
+                        </Navbar.Section>
+                        <Divider
+                            style={{ marginTop: '1rem', marginBottom: '1rem' }}
+                        />
+                        <Navbar.Section>
+                            <div className="quickActions">
+                                <div className="quickAction">
+                                    <IconCalendarPlus />
+                                    <div className="quickActionText">
+                                        Agendar consulta
+                                    </div>
+                                </div>
+                                <div className="quickAction">
+                                    <IconUserPlus />
+                                    <div
+                                        className="quickActionText"
+                                        onClick={() =>
+                                            setAddClientModalOpened(true)
+                                        }
+                                    >
+                                        Adicionar cliente
+                                    </div>
                                 </div>
                             </div>
-                            <div className="quickAction">
-                                <IconUserPlus />
-                                <div
-                                    className="quickActionText"
-                                    onClick={() =>
-                                        setAddClientModalOpened(true)
-                                    }
-                                >
-                                    Adicionar cliente
+                        </Navbar.Section>
+                        <Divider
+                            style={{ marginTop: '1rem', marginBottom: '1rem' }}
+                        />
+                        <Navbar.Section grow>
+                            <div className="quickActions">
+                                <div className="quickAction">
+                                    <IconUsers />
+                                    <Link
+                                        className="quickActionText"
+                                        to="clients"
+                                        onClick={() =>
+                                            setAddClientModalOpened(true)
+                                        }
+                                    >
+                                        Clientes
+                                    </Link>
+                                </div>
+                                <div className="quickAction">
+                                    <IconReportMedical />
+                                    <Link
+                                        className="quickActionText"
+                                        to="appointments"
+                                    >
+                                        Consultas
+                                    </Link>
+                                </div>
+                                <div className="quickAction">
+                                    <IconGraph />
+                                    <Link
+                                        className="quickActionText"
+                                        to="analytics"
+                                    >
+                                        Estatísticas
+                                    </Link>
+                                </div>
+                                <div className="quickAction">
+                                    <IconAdjustmentsHorizontal />
+                                    <Link
+                                        to="settings"
+                                        className="quickActionText"
+                                        onClick={toggleBurger}
+                                    >
+                                        Definições
+                                    </Link>
                                 </div>
                             </div>
-                        </div>
-                    </Navbar.Section>
-                    <Divider
-                        style={{ marginTop: '1rem', marginBottom: '1rem' }}
-                    />
-                    <Navbar.Section grow>
-                        <div className="quickActions">
-                            <div className="quickAction">
-                                <IconUsers />
-                                <Link className="quickActionText" to="clients">
-                                    Clientes
-                                </Link>
-                            </div>
-                            <div className="quickAction">
-                                <IconReportMedical />
-                                <Link
-                                    className="quickActionText"
-                                    to="appointments"
-                                >
-                                    Consultas
-                                </Link>
-                            </div>
-                            <div className="quickAction">
-                                <IconGraph />
-                                <Link
-                                    className="quickActionText"
-                                    to="analytics"
-                                >
-                                    Estatísticas
-                                </Link>
-                            </div>
-                            <div className="quickAction">
-                                <IconAdjustmentsHorizontal />
-                                <Link to="settings" className="quickActionText">
-                                    Definições
-                                </Link>
-                            </div>
-                        </div>
-                    </Navbar.Section>
+                        </Navbar.Section>
+                    </ScrollArea>
                 </Navbar>
             }
         >
