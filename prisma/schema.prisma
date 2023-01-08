@@ -2,13 +2,13 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 datasource db {
-  provider             = "mysql"
-  url                  = env("DATABASE_URL")
+  provider     = "mysql"
+  url          = env("DATABASE_URL")
   relationMode = "prisma"
 }
 
 generator client {
-  provider        = "prisma-client-js"
+  provider = "prisma-client-js"
 }
 
 model User {
@@ -21,23 +21,6 @@ model User {
   doctor    Doctor?
   client    Client?
   // locations    Location[]
-}
-
-model Client {
-  user      User      @relation(fields: [userEmail], references: [email])
-  userEmail String    @unique
-  patients  Patient[]
-}
-
-model Patient {
-  id          String @unique @default(uuid())
-  userEmail   String
-  client      Client @relation(fields: [userEmail], references: [userEmail])
-  ofDoctor    Doctor @relation(fields: [doctorEmail], references: [userEmail])
-  doctorEmail String
-
-  @@index([userEmail])
-  @@index([doctorEmail])
 }
 
 model Doctor {
@@ -72,6 +55,23 @@ model Calendar {
   googleDataId     String?
 
   @@index([googleDataId])
+}
+
+model Client {
+  user      User      @relation(fields: [userEmail], references: [email])
+  userEmail String    @unique
+  patients  Patient[]
+}
+
+model Patient {
+  id          String @unique @default(uuid())
+  userEmail   String
+  client      Client @relation(fields: [userEmail], references: [userEmail])
+  ofDoctor    Doctor @relation(fields: [doctorEmail], references: [userEmail])
+  doctorEmail String
+
+  @@index([userEmail])
+  @@index([doctorEmail])
 }
 
 // model Location {

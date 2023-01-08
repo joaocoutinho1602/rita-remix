@@ -68,6 +68,7 @@ export const loader: LoaderFunction = async ({ request }) => {
 };
 
 export async function action({ request }: ActionArgs) {
+    console.log('🚀 ~ file: office.tsx:71 ~ request', request)
     const session = await getSession(request.headers.get('Cookie'));
 
     /**
@@ -376,7 +377,12 @@ export default function Office() {
                             <div className="quickActions">
                                 <div className="quickAction">
                                     <IconCalendarPlus />
-                                    <div className="quickActionText">
+                                    <div
+                                        className="quickActionText"
+                                        onClick={() => {
+                                            toggleBurger();
+                                        }}
+                                    >
                                         Agendar consulta
                                     </div>
                                 </div>
@@ -384,9 +390,10 @@ export default function Office() {
                                     <IconUserPlus />
                                     <div
                                         className="quickActionText"
-                                        onClick={() =>
-                                            setAddClientModalOpened(true)
-                                        }
+                                        onClick={() => {
+                                            toggleBurger();
+                                            setAddClientModalOpened(true);
+                                        }}
                                     >
                                         Adicionar cliente
                                     </div>
@@ -403,9 +410,7 @@ export default function Office() {
                                     <Link
                                         className="quickActionText"
                                         to="clients"
-                                        onClick={() =>
-                                            setAddClientModalOpened(true)
-                                        }
+                                        onClick={toggleBurger}
                                     >
                                         Clientes
                                     </Link>
@@ -415,6 +420,7 @@ export default function Office() {
                                     <Link
                                         className="quickActionText"
                                         to="appointments"
+                                        onClick={toggleBurger}
                                     >
                                         Consultas
                                     </Link>
@@ -424,6 +430,7 @@ export default function Office() {
                                     <Link
                                         className="quickActionText"
                                         to="analytics"
+                                        onClick={toggleBurger}
                                     >
                                         Estatísticas
                                     </Link>

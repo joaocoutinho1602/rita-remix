@@ -49,7 +49,21 @@ export const loader: LoaderFunction = async ({ request }) => {
             return redirect('/login');
         }
 
-        if (googleRefreshToken?.length) {
+        if (!googleRefreshToken?.length) {
+            /**
+             ** If the user is authenticated but we don't have their Google refresh token, we have to generate the Google authentication URL
+             */
+            const response = await fetch(
+                `${getURL()}/api/google/generateAuthUrl`,
+                {
+                    method: 'GET',
+                }
+            );
+
+            const { googleAuthorizationUrl } = await response.json();
+
+            return json({ googleAuthorizationUrl });
+        } else {
             setCredentials({ refreshToken: googleRefreshToken });
 
             const user = await db.user
@@ -143,20 +157,6 @@ export const loader: LoaderFunction = async ({ request }) => {
             const events = eventsByDay(uniqueEventsWithColor);
 
             return json({ events });
-        } else {
-            /**
-             ** If the user is authenticated but we don't have their Google refresh token, we have to generate the Google authentication URL
-             */
-            const response = await fetch(
-                `${getURL()}/api/google/generateAuthUrl`,
-                {
-                    method: 'GET',
-                }
-            );
-
-            const { googleAuthorizationUrl } = await response.json();
-
-            return json({ googleAuthorizationUrl });
         }
     } catch (error) {
         switch (error) {
@@ -272,7 +272,11 @@ export default function OfficeIndex() {
             {value && events?.[makeActualDate(value)]?.length ? (
                 <div className="events">
                     {events?.[makeActualDate(value)].map(
-                        ({ id, summary, start, end, color, location }, index, array) => {
+                        (
+                            { id, summary, start, end, color, location },
+                            index,
+                            array
+                        ) => {
                             const startTime = dayjs(start?.dateTime).format(
                                 'HH:mm'
                             );
@@ -293,7 +297,9 @@ export default function OfficeIndex() {
                                             <div className="eventTime">{`${startTime} - ${endTime}`}</div>
                                         </div>
                                         <div>{summary}</div>
-                                        <div className='locationText'>{location}</div>
+                                        <div className="locationText">
+                                            {location}
+                                        </div>
                                     </Card>
                                     <br />
                                 </div>

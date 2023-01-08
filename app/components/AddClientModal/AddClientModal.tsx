@@ -31,6 +31,7 @@ export default function AddClientModal({ open, toggle }: AddClientModalProps) {
             opened={open}
             onClose={() => toggle(!open)}
             title={<div className="title">Adicionar cliente</div>}
+            centered
         >
             <Form method="post" name="addClient">
                 <TextInput
@@ -58,7 +59,13 @@ export default function AddClientModal({ open, toggle }: AddClientModalProps) {
                     {...form.getInputProps('email')}
                 />
                 <br />
-                <Button type="submit" loading={sending} radius="md" size="md">
+                <Button
+                    type="submit"
+                    name="action"
+                    loading={sending}
+                    radius="md"
+                    size="md"
+                >
                     Adicionar
                 </Button>
             </Form>
