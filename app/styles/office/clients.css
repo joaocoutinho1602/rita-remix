@@ -1,0 +1,12 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.headerLoaderContainer {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
