@@ -22,7 +22,6 @@ import {
 
 import { cv, services, socials } from '~/utils/client/data';
 
-
 import styles from '../styles/root.css';
 import { useLoader } from '~/hooks/useLoader';
 
@@ -55,7 +54,9 @@ export default function Index() {
             {isDesktop ? (
                 <div className="desktopContainer">
                     <div className="desktopHeaderNameContainer">
-                        <div onClick={reload} className="desktopHeaderName">Rita</div>
+                        <div onClick={reload} className="desktopHeaderName">
+                            Rita
+                        </div>
                         <div className="desktopHeaderName">Meira</div>
                     </div>
                     <div className="desktopHeaderPhotoCVContainer">

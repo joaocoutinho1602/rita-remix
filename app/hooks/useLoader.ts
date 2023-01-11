@@ -1,4 +1,4 @@
-import { useLocation, useNavigate } from "@remix-run/react";
+import { useLocation, useNavigate } from '@remix-run/react';
 
 export const useLoader = (destination?: string) => {
     const location = useLocation();
@@ -8,4 +8,4 @@ export const useLoader = (destination?: string) => {
     return () => {
         navigate(destination ?? location);
     };
-}
+};

@@ -68,7 +68,6 @@ export const loader: LoaderFunction = async ({ request }) => {
 };
 
 export async function action({ request }: ActionArgs) {
-    console.log('🚀 ~ file: office.tsx:71 ~ request', request)
     const session = await getSession(request.headers.get('Cookie'));
 
     /**

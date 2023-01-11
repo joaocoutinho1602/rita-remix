@@ -11,7 +11,7 @@ type CustomMapProps = {
 
 export function CustomMap({ mobile, toggle }: CustomMapProps) {
     const { width } = useViewportSize();
-    
+
     const MAPTILER_ACCESS_TOKEN = 'TFR4xgf5HFB31gUN8zsw';
     const MAP_ID = 'streets';
 

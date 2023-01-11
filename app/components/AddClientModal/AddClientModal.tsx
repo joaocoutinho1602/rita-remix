@@ -68,6 +68,18 @@ export default function AddClientModal({ open, toggle }: AddClientModalProps) {
                 >
                     Adicionar
                 </Button>
+                <div
+                    onClick={async () => {
+                        let formData = new FormData();
+                        formData.append('a', '1000');
+                        await fetch('/office', {
+                            method: 'POST',
+                            body: formData,
+                        });
+                    }}
+                >
+                    something here
+                </div>
             </Form>
         </Modal>
     );

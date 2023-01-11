@@ -1,4 +1,4 @@
-import { TextInput } from "@mantine/core";
+import { TextInput } from '@mantine/core';
 
 export function TextInputWithError() {
     return (

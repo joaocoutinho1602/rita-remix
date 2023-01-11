@@ -1,7 +1,12 @@
 import type { ActionFunction } from '@remix-run/node';
 import { redirect } from '@remix-run/node';
 
-import { destroySession, ErrorCodes, GenericErrors, getSession } from '~/utils/common';
+import {
+    destroySession,
+    ErrorCodes,
+    GenericErrors,
+    getSession,
+} from '~/utils/common';
 
 export const action: ActionFunction = async ({ request }) => {
     try {

@@ -17,9 +17,7 @@ type CommentsCarouselProps = {
     mobile?: boolean;
 };
 
-export const links: LinksFunction = () => [
-    { rel: 'stylesheet', href: styles },
-];
+export const links: LinksFunction = () => [{ rel: 'stylesheet', href: styles }];
 
 export function CommentsCarousel({ mobile }: CommentsCarouselProps) {
     const [, setSlideWidth] = useState(mobile ? 310 : 600);

@@ -177,7 +177,6 @@ const separator = '__separator__';
 const delimiter = '__delimiter__';
 
 export const action: ActionFunction = async ({ request }) => {
-    console.log('🚀 ~ file: settings.tsx ~ line 179 ~ request', request);
     try {
         const [formData, session] = await Promise.all([
             request.formData(),

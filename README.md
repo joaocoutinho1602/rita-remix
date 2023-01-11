@@ -40,12 +40,19 @@ Refactoring:
 
 1. Migrate client-side JS interaction functions into Remix actions (/office)
 2. Migrate Mantine forms and form submissions into remix-validated-forms and Remix actions (/login)
+3. Implement Remix error boundaries
+
+Form migration strategy is as follows, example in app/components/AddClientModal/AddClientModal.tsx:71:
+1. Use standard <form></form> components with an onSubmit function that validates on the client side
+2. Build new FormData() and append the fields needed
+3. Await fetch() with method=POST and body=formData
+4. Parse form data in a Remix action and proceed as usual
 
 Eventually:
 
 1. Add remix-image (https://github.com/Josh-McFarlin/remix-image)
 2. Read into Sentry with Remix (https://github.com/getsentry/sentry-javascript/tree/master/packages/remix)
-
+3. Remove signature font from office pages
 
 ## Authentication
 
