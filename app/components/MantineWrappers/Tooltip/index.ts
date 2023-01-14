@@ -1,0 +1,1 @@
+export { WrappedTooltip } from './Tooltip';

@@ -1,0 +1,26 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.headerLoaderContainer {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.patients {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-width: 90vw;
+    max-width: 90vw;
+}
+
+.patientCardContainer {
+    min-width: 70vw;
+    max-width: 70vw;
+}
