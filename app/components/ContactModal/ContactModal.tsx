@@ -54,7 +54,7 @@ export function ContactModal({ desktop }: ContactModalProps) {
 
         setSending(true);
 
-        await fetch('/api/email', {
+        await fetch('/api/email/contact', {
             method: 'POST',
             body: JSON.stringify({ name, email, phone, description }),
         })

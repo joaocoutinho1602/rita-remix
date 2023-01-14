@@ -4,4 +4,4 @@ export { CustomMap } from './CustomMap';
 export { List, ListLinks } from './List';
 export { SocialLink, SocialLinkLinks } from './SocialLink';
 
-export { TextInputWithError, TextInputWithPopover } from './MantineWrappers';
+export { WrappedTooltip } from './MantineWrappers';

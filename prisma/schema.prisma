@@ -11,6 +11,7 @@ generator client {
   provider = "prisma-client-js"
 }
 
+// A user is someone that is registered on the platform. A user can be a Doctor, a Client, or both, but only a maximum of one of each.
 model User {
   email     String   @unique
   password  String
@@ -20,9 +21,9 @@ model User {
   updatedAt DateTime @updatedAt
   doctor    Doctor?
   client    Client?
-  // locations    Location[]
 }
 
+// A Doctor is a User that uses the platform in order to schedule and manage Appointments FOR their Patients. A Doctor can have many Patients, but only one Patient for each Client on the platform. They also have a list of Locations
 model Doctor {
   id                String      @id @unique @default(uuid())
   user              User        @relation(fields: [userEmail], references: [email])
@@ -30,8 +31,21 @@ model Doctor {
   doctorSpecialtyId String
   googleData        GoogleData?
   patients          Patient[]
+  locations         Location[]
 }
 
+// A Location is a place where the Doctor can give Appointments. It is composed by a full address, which represents the physical location in the real world, and also an alias, which is a name that the Doctor can choose to call it for convenience (e.g. the address is "Rua Luís António Correia, nº 10, 6º frente, 4715-310, Braga", and the alias is simply "Braga"). Online is a special case of a Location that has an empty address
+model Location {
+  id          String @id @default(uuid())
+  address     String @default("")
+  alias       String
+  Doctor      Doctor @relation(fields: [doctorEmail], references: [userEmail])
+  doctorEmail String
+
+  @@index([doctorEmail])
+}
+
+// A DoctorSpecialty is a specialty that a Doctor practices and for which it can schedule Appointments on the platform. These are added manually to the platform and the User, when registering as a Doctor, can select one for themselves.
 model DoctorSpecialty {
   id   String @id @unique @default(uuid())
   name String
@@ -57,12 +71,14 @@ model Calendar {
   @@index([googleDataId])
 }
 
+// A Client is a User that uses the platform in order to schedule and manage Appointments WITH their Doctors. For every unique Doctor with whom a Client schedules an Appointment, a Patient related to the Client's User is created and associated with the Doctor. For this reason, a Client can have many Patients, one for each Doctor with whom they've had an Appointment.
 model Client {
   user      User      @relation(fields: [userEmail], references: [email])
   userEmail String    @unique
   patients  Patient[]
 }
 
+// A Patient is an association of a Client with a Doctor. A Client can have many patients, and every Patient is related to a single Client and a single Doctor.
 model Patient {
   id          String @unique @default(uuid())
   userEmail   String
@@ -73,13 +89,6 @@ model Patient {
   @@index([userEmail])
   @@index([doctorEmail])
 }
-
-// model Location {
-//   id        String @id @default(uuid())
-//   address   String @default("")
-//   User      User   @relation(fields: [userEmail], references: [email])
-//   userEmail String
-// }
 
 // model Appointment {
 //   id       String          @id @unique @default(uuid())

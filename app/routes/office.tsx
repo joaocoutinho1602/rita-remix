@@ -1,6 +1,8 @@
 import { useMemo, useState } from 'react';
 
-import type { ActionArgs, LoaderFunction } from '@remix-run/node';
+import dayjs from 'dayjs';
+
+import type { LoaderFunction } from '@remix-run/node';
 import { json, redirect } from '@remix-run/node';
 import { Link, Outlet, useNavigate, useTransition } from '@remix-run/react';
 
@@ -31,17 +33,11 @@ import {
     IconUsers,
 } from '@tabler/icons';
 
-import {
-    AddClientErrors,
-    ErrorCodes,
-    GenericErrors,
-    logError,
-} from '~/utils/common';
+import { AddPatientModal } from '~/components/AddPatientModal';
 
-import styles from '../styles/office.css';
-import AddClientModal from '~/components/AddClientModal/AddClientModal';
-import { db } from '~/utils/server';
-import dayjs from 'dayjs';
+import { ErrorCodes } from '~/utils/common';
+
+import styles from '~/styles/office.css';
 
 export function links() {
     return [{ rel: 'stylesheet', href: styles }];
@@ -66,180 +62,6 @@ export const loader: LoaderFunction = async ({ request }) => {
 
     return json(data);
 };
-
-export async function action({ request }: ActionArgs) {
-    const session = await getSession(request.headers.get('Cookie'));
-
-    /**
-     * TODO
-     * ***
-     * testar criação de clients
-     */
-
-    try {
-        const doctorEmail = session.get('userEmail');
-
-        const formData = await request.formData();
-
-        const firstName = formData.get('firstName') as string;
-        const lastName = formData.get('lastName') as string;
-        const email = formData.get('email') as string;
-
-        let [user, client] = await Promise.all([
-            db.user
-                .findUnique({
-                    where: { email },
-                    select: { email: true },
-                })
-                .catch((error) => {
-                    logError({
-                        filePath: '/office.tsx',
-                        message: `SELECT email FROM User WHERE email={email}`,
-                        error,
-                    });
-
-                    throw GenericErrors.PRISMA_ERROR;
-                }),
-            db.client
-                .findUnique({
-                    where: {
-                        userEmail: email,
-                    },
-                    select: {
-                        userEmail: true,
-                        patients: true,
-                    },
-                })
-                .catch((error) => {
-                    logError({
-                        filePath: '/office.tsx',
-                        message: `SELECT (userEmail, patients) FROM Client WHERE userEmail={email}`,
-                        error,
-                    });
-
-                    throw GenericErrors.PRISMA_ERROR;
-                }),
-        ]);
-
-        if (!user?.email) {
-            const password = await fetch(
-                'https://www.random.org/strings/?num=1&len=10&digits=on&upperalpha=on&loweralpha=on&unique=on&format=plain&rnd=new',
-                { method: 'GET' }
-            )
-                .then(async (response) => {
-                    const data = await response.body?.getReader()?.read();
-
-                    const utf8Decoder = new TextDecoder('utf-8');
-
-                    const password = utf8Decoder.decode(data?.value) || '';
-
-                    return password;
-                })
-                .catch((error) => {
-                    logError({
-                        filePath: '/office.tsx',
-                        message: 'error fetching string from random.org',
-                        error,
-                    });
-
-                    throw GenericErrors.UNKNOWN_ERROR;
-                });
-
-            user = await db.user
-                .create({
-                    data: { email, firstName, lastName, password },
-                    select: { email: true },
-                })
-                .catch((error) => {
-                    logError({
-                        filePath: '/office.tsx',
-                        message: `prisma error ~ INSERT INTO User (firstName, lastName, email, password) VALUES (${firstName}, ${lastName}, ${email}, ${password})`,
-                        error,
-                    });
-
-                    throw GenericErrors.PRISMA_ERROR;
-                });
-        }
-
-        if (!client?.userEmail) {
-            client = await db.client
-                .create({
-                    data: { userEmail: email },
-                    select: { userEmail: true, patients: true },
-                })
-                .catch((error) => {
-                    logError({
-                        filePath: '/office.tsx',
-                        message: `prisma error ~ INSERT INTO Client (userEmail) VALUES (${email})`,
-                        error,
-                    });
-
-                    throw GenericErrors.PRISMA_ERROR;
-                });
-        }
-
-        if (
-            client?.patients.find(
-                ({ doctorEmail: thisDoctorEmail }) =>
-                    thisDoctorEmail === doctorEmail
-            )
-        ) {
-            return json({ error: AddClientErrors.IS_ALREADY_PATIENT });
-        }
-
-        await db.patient
-            .create({
-                data: { userEmail: email, doctorEmail },
-                select: { id: true },
-            })
-            .then(async (newPatient) => {
-                await db.doctor
-                    .update({
-                        where: { userEmail: doctorEmail },
-                        data: {
-                            patients: { create: { userEmail: email } },
-                        },
-                    })
-                    .catch((error) => {
-                        logError({
-                            filePath: '/office.tsx',
-                            message: `prisma error ~ UPDATE Doctor SET patients=(INSERT INTO Patient (userEmail)) ${doctorEmail}`,
-                            error,
-                        });
-
-                        throw GenericErrors.PRISMA_ERROR;
-                    });
-            })
-            .catch((error) => {
-                if (error !== GenericErrors.PRISMA_ERROR) {
-                    logError({
-                        filePath: '/office.tsx',
-                        message: `prisma error ~ UPDATE Doctor SET patients=(INSERT INTO Patient (userEmail)) ${doctorEmail}`,
-                        error,
-                    });
-                }
-
-                throw GenericErrors.PRISMA_ERROR;
-            });
-
-        return json({ message: 'success' });
-    } catch (error) {
-        switch (error) {
-            case GenericErrors.PRISMA_ERROR: {
-                return json({});
-            }
-            default: {
-                logError({
-                    filePath: '/office.tsx',
-                    message: 'loader unknown error',
-                    error,
-                });
-
-                return json({ error: GenericErrors.UNKNOWN_ERROR });
-            }
-        }
-    }
-}
 
 export default function Office() {
     const [, setUserEmailLocalStorage] = useLocalStorage({
@@ -394,7 +216,7 @@ export default function Office() {
                                             setAddClientModalOpened(true);
                                         }}
                                     >
-                                        Adicionar cliente
+                                        Adicionar paciente
                                     </div>
                                 </div>
                             </div>
@@ -408,10 +230,10 @@ export default function Office() {
                                     <IconUsers />
                                     <Link
                                         className="quickActionText"
-                                        to="clients"
+                                        to="patients"
                                         onClick={toggleBurger}
                                     >
-                                        Clientes
+                                        Pacientes
                                     </Link>
                                 </div>
                                 <div className="quickAction">
@@ -457,7 +279,7 @@ export default function Office() {
             ) : (
                 <Outlet />
             )}
-            <AddClientModal
+            <AddPatientModal
                 open={addClientModalOpened}
                 toggle={setAddClientModalOpened}
             />

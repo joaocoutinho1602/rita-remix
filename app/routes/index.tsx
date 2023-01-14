@@ -22,7 +22,7 @@ import {
 
 import { cv, services, socials } from '~/utils/client/data';
 
-import styles from '../styles/root.css';
+import styles from '~/styles/root.css';
 import { useLoader } from '~/hooks/useLoader';
 
 export function links() {

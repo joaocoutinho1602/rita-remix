@@ -13,4 +13,7 @@ const { getSession, commitSession, destroySession } =
         },
     });
 
-export { getSession, commitSession, destroySession };
+const getSessionEmail = async (request: Request) =>
+    (await getSession(request.headers.get('Cookie'))).get('userEmail');
+
+export { getSession, commitSession, destroySession, getSessionEmail };

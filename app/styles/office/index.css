@@ -21,12 +21,18 @@
 }
 
 .events {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
     overflow-y: hidden;
+    min-width: 90vw;
+    max-width: 90vw;
 }
 
 .eventCardContainer {
-    min-width: 80vw;
-    max-width: 80vw;
+    min-width: 70vw;
+    max-width: 70vw;
 }
 
 .colorSwatchTimeContainer {

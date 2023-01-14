@@ -1,4 +1,5 @@
 export * from './enums';
+export * from './environment';
 export * from './google';
+export * from './logging';
 export * from './sessions';
-export * from './functions';

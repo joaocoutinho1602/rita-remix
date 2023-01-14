@@ -27,12 +27,12 @@ import {
 
 import styles from '~/styles/office/index.css';
 
-import type { LoaderEvents } from '~/utils/server/functions/office.index.loader.server';
+import type { LoaderEvents } from '~/utils/server/office.index.loader.server';
 import {
     eventsByDay,
     getEventsTimeSlice,
     mapEventsWithColor,
-} from '~/utils/server/functions/office.index.loader.server';
+} from '~/utils/server/office.index.loader.server';
 
 export function links() {
     return [{ rel: 'stylesheet', href: styles }];
@@ -244,8 +244,8 @@ export default function OfficeIndex() {
                     value={value}
                     onChange={setValue}
                     onMonthChange={(value) => {
+                        setValue(null);
                         const selection = dayjs(value).toISOString();
-
                         navigate(`/office?selection=${selection}`);
                     }}
                     firstDayOfWeek="sunday"
@@ -256,7 +256,7 @@ export default function OfficeIndex() {
                         return (
                             <Indicator
                                 size={16}
-                                color="yellow"
+                                color="gray"
                                 disabled={numberOfEvents === undefined}
                                 label={`${numberOfEvents}`}
                                 position="top-end"
@@ -271,6 +271,7 @@ export default function OfficeIndex() {
             <br />
             {value && events?.[makeActualDate(value)]?.length ? (
                 <div className="events">
+                    <br/>
                     {events?.[makeActualDate(value)].map(
                         (
                             { id, summary, start, end, color, location },
@@ -286,7 +287,7 @@ export default function OfficeIndex() {
 
                             return (
                                 <div className="eventCardContainer" key={id}>
-                                    <Card withBorder radius="md">
+                                    <Card shadow="0px 0px 10px 5px rgba(0,0,0,0.1)" radius="md">
                                         <div className="colorSwatchTimeContainer">
                                             {color.length ? (
                                                 <ColorSwatch

@@ -34,19 +34,13 @@ NEXT UP:
 3. Implement Add Patient to Doctor functionality (AddClientModal)
 
 CRITICAL:
-1. Fix Google account association to use email used to login into Goole instead of email stored in session
+1. Deal with Google errors when associating Google account, remember Google is source of truth
+2. Fix Google account association to use email used to login into Goole instead of email stored in session
 
 Refactoring:
 
-1. Migrate client-side JS interaction functions into Remix actions (/office)
-2. Migrate Mantine forms and form submissions into remix-validated-forms and Remix actions (/login)
-3. Implement Remix error boundaries
-
-Form migration strategy is as follows, example in app/components/AddClientModal/AddClientModal.tsx:71:
-1. Use standard <form></form> components with an onSubmit function that validates on the client side
-2. Build new FormData() and append the fields needed
-3. Await fetch() with method=POST and body=formData
-4. Parse form data in a Remix action and proceed as usual
+1. Implement Remix error boundaries
+2. Migrate authentication to Passport
 
 Eventually:
 
@@ -65,9 +59,7 @@ Eventually:
 
 In a given user's session we are storing:
 
-1. `userGoogleAccessToken`
-2. `userGoogleRefreshToken`
-2. `userEmail`
+1. `userEmail` - the user's email, stored in the session for easy identification of the user
 
 ## Error handling
 

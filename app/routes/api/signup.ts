@@ -4,7 +4,6 @@ import { redirect } from '@remix-run/node';
 import bcrypt from 'bcryptjs';
 
 import {
-    ErrorCodes,
     getSession,
     SignupErrors,
     GenericErrors,
@@ -12,16 +11,25 @@ import {
     logError,
 } from '~/utils/common';
 import { db } from '~/utils/server';
+import { customResponse } from '~/utils/server/response';
 
 export const action: ActionFunction = async ({ request }) => {
     try {
-        const sessionPromise = getSession(request.headers.get('Cookie'));
-        const bodyPromise = request.json();
+        const session = await getSession(request.headers.get('Cookie'));
 
-        let [
-            session,
-            { firstName, lastName, email, password, doctorSpecialtyId },
-        ] = await Promise.all([sessionPromise, bodyPromise]);
+        const {
+            firstName,
+            lastName,
+            email,
+            password,
+            doctorSpecialtyId,
+        }: {
+            firstName: string;
+            lastName: string;
+            email: string;
+            password: string;
+            doctorSpecialtyId: string;
+        } = await request.json();
 
         const registeredUser = await db.user
             .findUnique({
@@ -56,20 +64,21 @@ export const action: ActionFunction = async ({ request }) => {
                 throw SignupErrors.ERROR_CREATING_USER;
             });
 
-        await db.doctor
-            .create({
-                data: { userEmail: email, doctorSpecialtyId },
-            })
-            .catch((error) => {
-                logError({
-                    filePath: '/api/signup.ts',
-                    message: `prisma error ~ INSERT INTO Doctor (doctorSpecialtyId, userEmail) VALUES (${doctorSpecialtyId}, ${email})`,
-                    error,
+        if (doctorSpecialtyId?.length) {
+            await db.doctor
+                .create({
+                    data: { userEmail: email, doctorSpecialtyId },
+                })
+                .catch((error) => {
+                    logError({
+                        filePath: '/api/signup.ts',
+                        message: `prisma error ~ INSERT INTO Doctor (doctorSpecialtyId, userEmail) VALUES (${doctorSpecialtyId}, ${email})`,
+                        error,
+                    });
+
+                    throw SignupErrors.ERROR_CREATING_DOCTOR;
                 });
-
-                throw SignupErrors.ERROR_CREATING_DOCTOR;
-            });
-
+        }
         session.set('userEmail', createdUser.email);
 
         const url = `/office?password=${bcrypt.hashSync(
@@ -83,40 +92,25 @@ export const action: ActionFunction = async ({ request }) => {
     } catch (error) {
         switch (error) {
             case SignupErrors.EMAIL_ALREADY_REGISTERED: {
-                return new Response(undefined, {
-                    status: ErrorCodes.CUSTOM_ERROR,
-                    statusText: SignupErrors.EMAIL_ALREADY_REGISTERED,
-                });
+                return customResponse(SignupErrors.EMAIL_ALREADY_REGISTERED);
             }
             case SignupErrors.ERROR_CREATING_USER: {
-                return new Response(undefined, {
-                    status: ErrorCodes.CUSTOM_ERROR,
-                    statusText: SignupErrors.ERROR_CREATING_USER,
-                });
+                return customResponse(SignupErrors.ERROR_CREATING_USER);
             }
             case SignupErrors.ERROR_CREATING_DOCTOR: {
-                return new Response(undefined, {
-                    status: ErrorCodes.CUSTOM_ERROR,
-                    statusText: SignupErrors.ERROR_CREATING_DOCTOR,
-                });
+                return customResponse(SignupErrors.ERROR_CREATING_DOCTOR);
             }
             case GenericErrors.PRISMA_ERROR: {
-                return new Response(undefined, {
-                    status: ErrorCodes.CUSTOM_ERROR,
-                    statusText: GenericErrors.PRISMA_ERROR,
-                });
+                return customResponse(GenericErrors.PRISMA_ERROR);
             }
             default: {
                 logError({
                     filePath: '/api/signup.ts',
-                    message: 'loader error',
+                    message: 'action error',
                     error,
                 });
 
-                return new Response(undefined, {
-                    status: ErrorCodes.CUSTOM_ERROR,
-                    statusText: GenericErrors.UNKNOWN_ERROR,
-                });
+                return customResponse(GenericErrors.UNKNOWN_ERROR);
             }
         }
     }

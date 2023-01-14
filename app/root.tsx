@@ -74,7 +74,9 @@ function MantineTheme({ children }: { children: React.ReactNode }) {
                 withNormalizeCSS
                 withGlobalStyles
             >
-                <NotificationsProvider>{children}</NotificationsProvider>
+                <NotificationsProvider position="top-right">
+                    {children}
+                </NotificationsProvider>
             </MantineProvider>
         </ColorSchemeProvider>
     );

@@ -10,34 +10,15 @@ import {
     GenericErrors,
     LoginErrors,
     logError,
+    setCredentials,
 } from '~/utils/common';
 import { db } from '~/utils/server';
 
 export const action: ActionFunction = async ({ request }) => {
     try {
-        const sessionPromise = getSession(request.headers.get('Cookie')).catch(
-            (error) => {
-                logError({
-                    filePath: '/api/login.ts',
-                    message: 'error getting session',
-                    error,
-                });
-
-                throw GenericErrors.UNKNOWN_ERROR;
-            }
-        );
-        const bodyPromise = request.json().catch((error) => {
-            logError({
-                filePath: '/api/login.ts',
-                message: 'error parsing request body',
-                error,
-            });
-
-            throw GenericErrors.UNKNOWN_ERROR;
-        });
-
-        let [session, { email, password, keepLoggedIn, fromLocalStorage }] =
-            await Promise.all([sessionPromise, bodyPromise]);
+        const session = await getSession(request.headers.get('Cookie'));
+        const { email, password, keepLoggedIn, fromLocalStorage } =
+            await request.json();
 
         const user = await db.user
             .findUnique({
@@ -62,38 +43,39 @@ export const action: ActionFunction = async ({ request }) => {
             });
 
         /**
-         *? If the database returns no user, then the email is not registered
+         * If the database returns no user, then the email is not registered
          */
         if (!user) {
             throw LoginErrors.EMAIL_NOT_REGISTERED;
         }
 
         /**
-         *? If the password came from local storage but the hash doesn't match the password in the database, then the hash is wrong and the user must resubmit the password
+         * If the password came from local storage but the hash doesn't match the password in the database, then the hash is wrong and the user must resubmit the password
          */
         if (fromLocalStorage && !bcrypt.compareSync(user.password, password)) {
             throw LoginErrors.WRONG_HASH;
         }
 
         /**
-         *? If the password doesn't come from local storage and it doesn't match the password in the database, then the user inputted the wrong password
+         * If the password doesn't come from local storage and it doesn't match the password in the database, then the user inputted the wrong password
          */
         if (!fromLocalStorage && user.password !== password) {
             throw LoginErrors.WRONG_PASSWORD;
         }
 
         /**
-         *? If the email and the password match, set the session and redirect the user to the home page
-         *? If the user wants to stay logged in, we send a hash of their password to be kept in local storage
+         * If the email and the password match, set the credentials on the Google Auth Client and redirect the user to the home page
          */
         session.set('userEmail', email);
         if (user.doctor?.googleData?.refreshToken) {
-            session.set(
-                'userGoogleRefreshToken',
-                user.doctor?.googleData?.refreshToken
-            );
+            setCredentials({
+                refreshToken: user.doctor?.googleData?.refreshToken,
+            });
         }
 
+        /**
+         * If the user wants to stay logged in on their device, we send a hash of their password to be kept in local storage
+         */
         const url = `/office${
             keepLoggedIn ? `?password=${bcrypt.hashSync(password, 10)}` : ''
         }`;
@@ -112,6 +94,7 @@ export const action: ActionFunction = async ({ request }) => {
 
                 return new Response(undefined, {
                     status: ErrorCodes.CUSTOM_ERROR,
+                    statusText: LoginErrors.EMAIL_NOT_REGISTERED,
                     headers: {
                         statusText: LoginErrors.EMAIL_NOT_REGISTERED,
                     },
@@ -126,6 +109,7 @@ export const action: ActionFunction = async ({ request }) => {
 
                 return new Response(undefined, {
                     status: ErrorCodes.CUSTOM_ERROR,
+                    statusText: LoginErrors.WRONG_HASH,
                     headers: {
                         statusText: LoginErrors.WRONG_HASH,
                     },
@@ -140,6 +124,7 @@ export const action: ActionFunction = async ({ request }) => {
 
                 return new Response(undefined, {
                     status: ErrorCodes.CUSTOM_ERROR,
+                    statusText: LoginErrors.WRONG_PASSWORD,
                     headers: {
                         statusText: LoginErrors.WRONG_PASSWORD,
                     },
@@ -154,6 +139,7 @@ export const action: ActionFunction = async ({ request }) => {
 
                 return new Response(undefined, {
                     status: ErrorCodes.CUSTOM_ERROR,
+                    statusText: GenericErrors.PRISMA_ERROR,
                     headers: {
                         statusText: GenericErrors.PRISMA_ERROR,
                     },
@@ -168,6 +154,7 @@ export const action: ActionFunction = async ({ request }) => {
 
                 return new Response(undefined, {
                     status: ErrorCodes.CUSTOM_ERROR,
+                    statusText: GenericErrors.UNKNOWN_ERROR,
                     headers: {
                         statusText: GenericErrors.UNKNOWN_ERROR,
                     },

@@ -27,6 +27,11 @@
     margin-right: 0.5rem;
 }
 
+.checkboxTooltipContainer {
+    display: flex;
+    flex-direction: row;
+}
+
 .sendButton {
     margin-top: 1.5rem;
     font-size: 20;

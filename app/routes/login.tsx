@@ -17,14 +17,16 @@ import {
     TextInput,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
-import { IconAlertCircle } from '@tabler/icons';
+import { cleanNotifications, showNotification } from '@mantine/notifications';
+import { IconAlertCircle, IconX } from '@tabler/icons';
 
+import type { CustomFormEvent } from '~/utils/client/forms';
+import { errorsInForm, handleError } from '~/utils/client/forms';
 import {
     ErrorCodes,
     LoginErrors,
     SuccessCodes,
     getSession,
-    GenericErrors,
 } from '~/utils/common';
 
 import styles from '~/styles/login.css';
@@ -64,6 +66,13 @@ export default function Login() {
     const navigate = useNavigate();
 
     useEffect(() => {
+        cleanNotifications();
+    }, []);
+
+    useEffect(() => {
+        /**
+         * This useEffect handles the login of a user that had already logged into this device once and chose to keep their user logged in
+         */
         if (
             keepLoggedIn &&
             userEmailLocalStorage?.length &&
@@ -100,6 +109,7 @@ export default function Login() {
                         case LoginErrors.WRONG_HASH: {
                             setUserEmailLocalStorage('');
                             setPasswordLocalStorage('');
+                            break;
                         }
                     }
                 })
@@ -131,12 +141,8 @@ export default function Login() {
         }),
     });
 
-    async function submit(e?: React.FormEvent<HTMLFormElement>) {
-        if (e) {
-            e.preventDefault();
-        }
-
-        if (form.validate().hasErrors) {
+    async function submit(e: CustomFormEvent) {
+        if (errorsInForm(e, form)) {
             return;
         }
 
@@ -150,13 +156,7 @@ export default function Login() {
             body: JSON.stringify({ email, password, keepLoggedIn }),
         })
             .then(async (response) => {
-                if (response.status === ErrorCodes.CUSTOM_ERROR) {
-                    throw response.headers.get('statusText');
-                }
-
-                if (response.status >= 400) {
-                    throw GenericErrors.UNKNOWN_ERROR;
-                }
+                handleError(response);
 
                 flushSync(() => setRedirecting(true));
 
@@ -179,11 +179,30 @@ export default function Login() {
             })
             .catch((message) => {
                 switch (message) {
-                    case GenericErrors.UNKNOWN_ERROR: {
-                        console.log('lida com este erro preguiçoso');
+                    case LoginErrors.EMAIL_NOT_REGISTERED: {
+                        showNotification({
+                            title: 'Este email não está registado',
+                            message: 'Clique aqui para se registar',
+                            autoClose: 10000,
+                            onClick: () =>
+                                navigate(`/signup?email=${form.values.email}`),
+                        });
+                        break;
+                    }
+                    case LoginErrors.WRONG_PASSWORD: {
+                        showNotification({
+                            message: 'A password está errada',
+                            color: 'red',
+                            icon: <IconX/>,
+                        });
+                        break;
                     }
                     default: {
-                        setError(message);
+                        showNotification({
+                            title: 'Algo de muito errado aconteceu',
+                            message: 'Já estamos a tratar do assunto',
+                            color: 'red',
+                        });
                     }
                 }
             })
@@ -200,48 +219,18 @@ export default function Login() {
                 <div className="formContainer">
                     <h1>MEDICI</h1>
                     <form onSubmit={(e) => submit(e)} className="form">
-                        <Popover
-                            opened={error === LoginErrors.EMAIL_NOT_REGISTERED}
-                            withArrow
-                            transition={'fade'}
-                            transitionDuration={200}
-                            position="right"
-                        >
-                            <Popover.Target>
-                                <TextInput
-                                    type="text"
-                                    label="Email"
-                                    placeholder={
-                                        form.errors.email
-                                            ? ''
-                                            : 'joanasilva@email.com'
-                                    }
-                                    sx={(theme) => ({
-                                        marginBottom: theme.spacing.md,
-                                    })}
-                                    name="email"
-                                    {...form.getInputProps('email')}
-                                />
-                            </Popover.Target>
-                            <Popover.Dropdown>
-                                <div
-                                    className="popoverDropdown"
-                                    onClick={() =>
-                                        navigate(
-                                            `/signup?email=${form.values.email}`
-                                        )
-                                    }
-                                >
-                                    <IconAlertCircle color="#ff6b6b" />
-                                    <Space w="xs" />
-                                    <div className="popoverText">
-                                        Este email não está registado.
-                                        <br />
-                                        Clique aqui para criar conta!
-                                    </div>
-                                </div>
-                            </Popover.Dropdown>
-                        </Popover>
+                        <TextInput
+                            type="text"
+                            label="Email"
+                            placeholder={
+                                form.errors.email ? '' : 'joanasilva@email.com'
+                            }
+                            sx={(theme) => ({
+                                marginBottom: theme.spacing.md,
+                            })}
+                            name="email"
+                            {...form.getInputProps('email')}
+                        />
                         <Popover
                             opened={error === LoginErrors.WRONG_PASSWORD}
                             withArrow
@@ -280,7 +269,7 @@ export default function Login() {
                             radius="md"
                             size="md"
                             style={classes.sendButton}
-                            onClick={() => submit()}
+                            onClick={submit}
                             type="submit"
                         >
                             Enviar

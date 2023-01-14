@@ -1,6 +1,6 @@
 import { google } from 'googleapis';
 
-import { getURL } from '.';
+import { getURL } from './environment';
 
 export const googleAuthClient = new google.auth.OAuth2(
     '119395277308-2dh9is04npveii3sqt6li8hsdll3rrie.apps.googleusercontent.com',

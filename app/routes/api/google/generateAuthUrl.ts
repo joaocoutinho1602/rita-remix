@@ -8,6 +8,7 @@ export const loader: LoaderFunction = async () => {
     const googleAuthorizationUrl = googleAuthClient.generateAuthUrl({
         access_type: 'offline',
         scope,
+        prompt: 'consent',
     });
 
     return { googleAuthorizationUrl };

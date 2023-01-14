@@ -1,6 +1,7 @@
 .calendar {
     display: grid;
     row-gap: 1rem;
+    margin-left: 1rem;
 }
 
 .row {
@@ -9,7 +10,7 @@
     grid-template-columns: auto auto auto;
     gap: 1rem;
     grid-template-areas: 'checkbox color summary description';
-    justify-content: center;
+    justify-content: start;
     align-items: center;
 }
 

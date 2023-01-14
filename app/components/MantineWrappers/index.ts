@@ -1,2 +1,1 @@
-export { TextInputWithError } from './TextInputWithError';
-export { TextInputWithPopover } from './TextInputWithPopover';
+export { WrappedTooltip } from './Tooltip';

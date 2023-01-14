@@ -1,14 +1,12 @@
 import { useMemo, useState } from 'react';
 
-import type { ActionFunction, LoaderFunction } from '@remix-run/node';
+import type { LoaderFunction } from '@remix-run/node';
 import { json, redirect } from '@remix-run/node';
-import { Form, useLoaderData } from '@remix-run/react';
+import { useLoaderData } from '@remix-run/react';
 
-import { isEqual, uniqBy } from 'lodash';
+import { isEqual } from 'lodash';
 
 import { Button, ColorSwatch, Checkbox } from '@mantine/core';
-
-import { db } from '~/utils/server';
 
 import {
     getSession,
@@ -17,10 +15,13 @@ import {
     getURL,
     GenericErrors,
     logError,
-    destroySession,
 } from '~/utils/common';
+import { db } from '~/utils/server';
+import type { CustomFormEvent} from '~/utils/client';
+import { handleError } from '~/utils/client';
 
 import styles from '~/styles/office/settings.css';
+import { showNotification } from '@mantine/notifications';
 
 type CalendarsObject = {
     [key: string]: {
@@ -50,99 +51,9 @@ export const loader: LoaderFunction = async ({ request }) => {
             return redirect('/login');
         }
 
-        if (googleRefreshToken?.length) {
-            setCredentials({ refreshToken: googleRefreshToken });
-
-            const allcalendarsPromise = googleCalendarAPI.calendarList.list();
-
-            const userPromise = db.user
-                .findUnique({
-                    where: { email },
-                    select: {
-                        doctor: {
-                            select: {
-                                googleData: {
-                                    select: {
-                                        id: true,
-                                        calendars: {
-                                            select: {
-                                                id: true,
-                                                googleCalendarId: true,
-                                                isMediciCalendar: true,
-                                            },
-                                            orderBy: {
-                                                isMediciCalendar: 'asc',
-                                            },
-                                        },
-                                    },
-                                },
-                            },
-                        },
-                    },
-                })
-                .catch((error) => {
-                    logError({
-                        filePath: '/office/settings.tsx',
-                        message: `prisma error - SELECT (id, googleCalendarId, idMediciCalendar) FROM (SELECT calendars FROM (SELECT googleData From (SELECT doctor FROM User WHERE email=${email})))`,
-                        error,
-                    });
-
-                    throw GenericErrors.PRISMA_ERROR;
-                });
-
-            const [allCalendars, user] = await Promise.all([
-                allcalendarsPromise,
-                userPromise,
-            ]);
-
-            const selectedCalendars = user?.doctor?.googleData?.calendars;
-
-            const calendarsArray = uniqBy(
-                allCalendars?.data?.items?.map(
-                    ({ id, summary, description, backgroundColor }) => ({
-                        id,
-                        selected: selectedCalendars?.some(
-                            (calendar) => calendar.googleCalendarId === id
-                        ),
-                        summary,
-                        description,
-                        backgroundColor,
-                        isMediciCalendar: selectedCalendars?.find(
-                            (calendar) => calendar.googleCalendarId === id
-                        )?.isMediciCalendar,
-                    })
-                ),
-                (calendar) => calendar.summary
-            );
-
-            const calendarsInitialValue: CalendarsObject = {};
-
-            let calendars = calendarsArray
-                .sort((a) => (a.isMediciCalendar ? -1 : 1))
-                .reduce(
-                    (acc, curVal) =>
-                        Object.assign({}, acc, {
-                            [curVal.id as string]: curVal,
-                        }),
-                    calendarsInitialValue
-                );
-
-            const checkboxesInitialValues: CheckboxesObject = {};
-
-            const checkboxes = Object.entries(calendars).reduce(
-                (acc, [key, value]) =>
-                    Object.assign({}, acc, { [key]: value.selected }),
-                checkboxesInitialValues
-            );
-
-            return json({
-                googleDataId: user?.doctor?.googleData?.id,
-                calendars,
-                checkboxes,
-            });
-        } else {
+        if (!googleRefreshToken?.length) {
             /**
-             ** If the user is authenticated but we don't have their Google refresh token, we have to generate the Google authentication URL
+             * If the user is authenticated but we don't have their Google refresh token, we have to generate the Google authentication URL
              */
             const response = await fetch(
                 `${getURL()}/api/google/generateAuthUrl`,
@@ -155,6 +66,105 @@ export const loader: LoaderFunction = async ({ request }) => {
 
             return json({ googleAuthorizationUrl });
         }
+
+        setCredentials({ refreshToken: googleRefreshToken });
+
+        /**
+         * First we get all the Google calendars on Google and on Medici
+         */
+        const allcalendarsPromise = googleCalendarAPI.calendarList.list();
+
+        const userPromise = db.user
+            .findUnique({
+                where: { email },
+                select: {
+                    doctor: {
+                        select: {
+                            googleData: {
+                                select: {
+                                    id: true,
+                                    calendars: {
+                                        select: {
+                                            id: true,
+                                            googleCalendarId: true,
+                                            isMediciCalendar: true,
+                                        },
+                                        orderBy: {
+                                            isMediciCalendar: 'asc',
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+            })
+            .catch((error) => {
+                logError({
+                    filePath: '/office/settings.tsx',
+                    message: `prisma error - SELECT (id, googleCalendarId, idMediciCalendar) FROM (SELECT calendars FROM (SELECT googleData From (SELECT doctor FROM User WHERE email=${email})))`,
+                    error,
+                });
+
+                throw GenericErrors.PRISMA_ERROR;
+            });
+
+        const [allCalendars, user] = await Promise.all([
+            allcalendarsPromise,
+            userPromise,
+        ]);
+
+        const selectedCalendars = user?.doctor?.googleData?.calendars;
+
+        /**
+         * We then extend the information of every Google calendar with wether they've been selected by the Doctor to be shown and set the flag for which is the Medici calendar
+         */
+        const calendarsArray = (allCalendars?.data?.items || []).map(
+            ({ id, summary, description, backgroundColor }) => {
+                const selectedCalendar = selectedCalendars?.find(
+                    (calendar) => calendar.googleCalendarId === id
+                );
+
+                return {
+                    id,
+                    selected: selectedCalendar ? true : false,
+                    summary,
+                    description,
+                    backgroundColor,
+                    isMediciCalendar: selectedCalendar?.isMediciCalendar,
+                };
+            }
+        );
+
+        const calendarsInitialValue: CalendarsObject = {};
+        /**
+         * We then put the Medici calendar as the head of the list and create an object of calendars by ID
+         */
+        let calendars = calendarsArray
+            .sort((a) => (a.isMediciCalendar ? -1 : 1))
+            .reduce(
+                (acc, curVal) =>
+                    Object.assign({}, acc, {
+                        [curVal.id as string]: curVal,
+                    }),
+                calendarsInitialValue
+            );
+
+        const checkboxesInitialValues: CheckboxesObject = {};
+        /**
+         * Lastly we create an object that represents the initial values for the checkboxes that are shown to the user
+         */
+        const checkboxes = Object.entries(calendars).reduce(
+            (acc, [key, value]) =>
+                Object.assign({}, acc, { [key]: value.selected }),
+            checkboxesInitialValues
+        );
+
+        return json({
+            googleDataId: user?.doctor?.googleData?.id,
+            calendars,
+            checkboxes,
+        });
     } catch (error) {
         switch (error) {
             case GenericErrors.PRISMA_ERROR: {
@@ -164,156 +174,6 @@ export const loader: LoaderFunction = async ({ request }) => {
                 logError({
                     filePath: '/office/settings.tsx',
                     message: 'loader unknown error',
-                    error,
-                });
-
-                return json({ error: GenericErrors.UNKNOWN_ERROR });
-            }
-        }
-    }
-};
-
-const separator = '__separator__';
-const delimiter = '__delimiter__';
-
-export const action: ActionFunction = async ({ request }) => {
-    try {
-        const [formData, session] = await Promise.all([
-            request.formData(),
-            getSession(request.headers.get('Cookie')),
-        ]);
-
-        const action = formData.get('action');
-        const email = session.get('userEmail');
-
-        switch (action) {
-            case 'googleDataId': {
-                const googleDataId = formData.get('googleDataId') as string;
-
-                const checkboxesString = formData.getAll(
-                    'checkboxes'
-                )[0] as string;
-
-                let newGoogleCalendars: { googleCalendarId: string }[] = [];
-                let googleCalendarIdsToDelete: string[] = [];
-
-                /**
-                 * Parsing the value encoded in the workaround
-                 */
-                checkboxesString.split(delimiter).forEach((checkbox) =>
-                    checkbox.split(separator)[1] === 'true'
-                        ? newGoogleCalendars.push({
-                              googleCalendarId: checkbox.split(separator)[0],
-                          })
-                        : googleCalendarIdsToDelete.push(
-                              checkbox.split(separator)[0]
-                          )
-                );
-
-                await db.googleData
-                    .update({
-                        where: { id: googleDataId },
-                        data: {
-                            calendars: {
-                                createMany: {
-                                    data: newGoogleCalendars,
-                                },
-                                deleteMany: {
-                                    googleCalendarId: {
-                                        in: googleCalendarIdsToDelete,
-                                    },
-                                },
-                            },
-                        },
-                    })
-                    .catch((error) => {
-                        logError({
-                            filePath: '/office/settings.tsx',
-                            message: `prisma error - UPDATE googleData WHERE googleDataId=${googleDataId} CREATING ${newGoogleCalendars} AND DELETING ${googleCalendarIdsToDelete}`,
-                            error,
-                        });
-
-                        throw GenericErrors.PRISMA_ERROR;
-                    });
-
-                return null;
-            }
-            case 'deleteAccount': {
-                // const [user, doctor, client] = await Promise.all([
-                //     db.user.findUnique({ where: { email } }).catch((error) => {
-                //         logError({
-                //             filePath: '/office/settings.tsx',
-                //             message: `prisma error - SELECT * FROM User WHERE email=${email}`,
-                //             error,
-                //         });
-
-                //         throw GenericErrors.PRISMA_ERROR;
-                //     }),
-                //     db.doctor
-                //         .findUnique({ where: { userEmail: email } })
-                //         .catch((error) => {
-                //             logError({
-                //                 filePath: '/office/settings.tsx',
-                //                 message: `prisma error - SELECT * FROM Doctor WHERE email=${email}`,
-                //                 error,
-                //             });
-
-                //             throw GenericErrors.PRISMA_ERROR;
-                //         }),
-                //     db.client
-                //         .findUnique({ where: { userEmail: email } })
-                //         .catch((error) => {
-                //             logError({
-                //                 filePath: '/office/settings.tsx',
-                //                 message: `prisma error - SELECT * FROM Client WHERE email=${email}`,
-                //                 error,
-                //             });
-
-                //             throw GenericErrors.PRISMA_ERROR;
-                //         }),
-                // ]);
-
-                // let deleteUserPromise,
-                //     deleteDoctorPromise,
-                //     deleteClientPromise,
-                //     deleteGoogleDataPromise;
-
-                // if (doctor?.userEmail) {
-
-                // }
-
-                const something = await db.user
-                    .delete({ where: { email } })
-                    .catch((error) => {
-                        logError({
-                            filePath: '/office/settings.tsx',
-                            message: `prisma error - DELETE User WHERE email=${email}`,
-                            error,
-                        });
-
-                        throw GenericErrors.PRISMA_ERROR;
-                    });
-                console.log(
-                    '🚀 ~ file: settings.tsx ~ line 296 ~ something',
-                    something
-                );
-
-                return redirect('/login', {
-                    headers: {
-                        'Set-Cookie': await destroySession(session),
-                    },
-                });
-            }
-        }
-    } catch (error) {
-        switch (error) {
-            case GenericErrors.PRISMA_ERROR: {
-                return json({ error: GenericErrors.PRISMA_ERROR });
-            }
-            default: {
-                logError({
-                    filePath: '/office/settings.tsx',
-                    message: 'action googleDataId unknown error',
                     error,
                 });
 
@@ -341,27 +201,32 @@ export default function Settings() {
         [checkboxes, data?.checkboxes]
     );
 
-    /**
-     * This workaround is needed because Mantine checkboxes won't
-     * send values through to Remix's action if all checkboxes are
-     * false or disabled.
-     * This generates the following string:
-     * {calendarId}__separator__{value}__delimiter__{calendarId}__separator__{value}
-     * It excludes the Medici calendar
-     */
-    const checkboxesValue = useMemo(
-        () =>
-            Object.entries(checkboxes).reduce(
-                (acc, [id, value], index, array) =>
-                    acc +
-                    (data?.calendars?.[id].isMediciCalendar
-                        ? ''
-                        : `${id}${separator}${value}` +
-                          (index !== array.length - 1 ? delimiter : '')),
-                ''
-            ),
-        [checkboxes, data?.calendars]
-    );
+    async function submit(e: CustomFormEvent) {
+        e.preventDefault();
+
+        await fetch('/api/doctor/showCalendars', {
+            method: 'POST',
+            body: JSON.stringify({
+                checkboxes,
+                googleDataId: data?.googleDataId,
+            }),
+        })
+            .then((response) => {
+                handleError(response);
+                showNotification({
+                    message: 'Alterações submetidas com sucesso',
+                    color: 'green',
+                });
+            })
+            .catch(() => {
+                showNotification({
+                    title: 'Algo de errado aconteceu',
+                    message:
+                        'Por favor, volte a tentar submeter as alterações. Entretanto, já estamos em cima do assunto.',
+                    color: 'yellow',
+                });
+            });
+    }
 
     return (
         <div>
@@ -372,7 +237,7 @@ export default function Settings() {
                 Defina aqui quais os calendários que aparecem na sua página
                 principal
             </h5>
-            <Form method="post">
+            <form onSubmit={submit}>
                 <div className="calendar">
                     {Object.values(data?.calendars || {})?.map(
                         ({
@@ -394,43 +259,35 @@ export default function Settings() {
                                         )
                                     }
                                 />
-                                <ColorSwatch color={backgroundColor} />
+                                <ColorSwatch color={backgroundColor} size={18} />
                                 <div className="summary">{summary}</div>
                             </div>
                         )
                     )}
                 </div>
                 <br />
-                {/**
-                 * These hidden inputs carry the checkbox string and the Google Data ID through to the Remix action
-                 */}
-                <input
-                    hidden
-                    readOnly
-                    name="checkboxes"
-                    value={checkboxesValue}
-                />
-                <input
-                    hidden
-                    readOnly
-                    name="googleDataId"
-                    value={data?.googleDataId}
-                />
                 <Button
                     type="submit"
                     name="action"
                     value="googleDataId"
                     disabled={saveButtonDisabled}
+                    onClick={submit}
                 >
                     Salvar
                 </Button>
-            </Form>
+            </form>
             <br />
-            <Form method="post">
+            <br />
+            <h2>Localizações</h2>
+            <h5>Aqui pode gerir as localizações onde dá consultas</h5>
+            <br />
+            <br />
+            <br />
+            {/* <Form method="post">
                 <Button type="submit" name="action" value="deleteAccount">
                     Apagar Conta
                 </Button>
-            </Form>
+            </Form> */}
         </div>
     );
 }
