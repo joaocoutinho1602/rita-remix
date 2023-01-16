@@ -176,6 +176,8 @@ export default function Signup() {
                             message: 'Clique aqui para fazer o login',
                             onClick: () =>
                                 navigate(`/login?email=${form.values.email}`),
+                            autoClose: false,
+                            styles: { root: { marginTop: '50px' } },
                         });
                         break;
                     }
@@ -185,7 +187,8 @@ export default function Signup() {
                             message: 'Já estamos a tratar do assunto',
                             icon: <IconX />,
                             color: 'red',
-                            autoClose: 10000,
+                            autoClose: false,
+                            styles: { root: { marginTop: '50px' } },
                         });
                     }
                 }

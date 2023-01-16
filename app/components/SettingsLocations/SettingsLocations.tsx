@@ -27,8 +27,10 @@ export function SettingsLocations({
             <div className="locationsContainer">
                 {locations
                     .filter(({ alias }) => alias !== 'Online')
-                    .map(({ alias, address, id }) => (
-                        <div className="cardContainer" key={id}>
+                    .map(location => {
+                        const { alias, address, id } = location;
+
+                        return <div className="cardContainer" key={id}>
                             <Card shadow="0px 0px 10px 5px rgba(0,0,0,0.1)">
                                 <div className="card">
                                     <div className="info">
@@ -38,6 +40,7 @@ export function SettingsLocations({
                                     <div className="actions">
                                         <EditLocationModal
                                             locationId={id}
+                                            location={location}
                                             locations={locations}
                                             setLocations={setLocations}
                                         />
@@ -50,7 +53,7 @@ export function SettingsLocations({
                                 </div>
                             </Card>
                         </div>
-                    ))}
+                    })}
             </div>
             <br />
             <AddLocationModal

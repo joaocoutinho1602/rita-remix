@@ -1,7 +1,7 @@
 import { Button, Checkbox, ColorSwatch } from '@mantine/core';
 import { showNotification } from '@mantine/notifications';
 import { useFetcher } from '@remix-run/react';
-import { IconAlertTriangle, IconCheck } from '@tabler/icons';
+import { IconAlertTriangle, IconCheck, IconX } from '@tabler/icons';
 import { isEqual } from 'lodash';
 import { useMemo, useState } from 'react';
 
@@ -26,6 +26,7 @@ export function SettingsCalendars({
     googleDataId,
     loaderCheckboxes = {},
 }: SettingsCalendarProps) {
+    const [errorCount, setErrorCount] = useState(0);
     const [startingCheckboxes, setStartingCheckboxes] = useState<{
         [key: string]: boolean;
     }>(loaderCheckboxes);
@@ -58,20 +59,36 @@ export function SettingsCalendars({
 
                 showNotification({
                     message: 'Alterações submetidas com sucesso',
-                    autoClose: 5000,
                     color: 'green',
                     icon: <IconCheck size={18} />,
+                    disallowClose: true,
+                    styles: { root: { marginTop: '50px' } },
                 });
             })
             .catch(() => {
-                showNotification({
-                    title: 'Algo de errado aconteceu',
-                    message:
-                        'Por favor, volte a tentar submeter as alterações. Entretanto, já estamos em cima do assunto.',
-                    color: 'yellow',
-                    icon: <IconAlertTriangle size={18} />,
-                    autoClose: 5000,
-                });
+                setErrorCount(errorCount + 1);
+
+                if (errorCount < 3) {
+                    showNotification({
+                        title: 'Algo de errado aconteceu',
+                        message:
+                            'Por favor, volte a tentar submeter as alterações. Entretanto, já estamos em cima do assunto.',
+                        color: 'yellow',
+                        icon: <IconAlertTriangle size={18} />,
+                        disallowClose: true,
+                        styles: { root: { marginTop: '50px' } },
+                    });
+                } else {
+                    showNotification({
+                        title: 'Estamos com problemas',
+                        message:
+                            'Vamos tentar resolver tudo o mais rapidamente possível',
+                        color: 'red',
+                        icon: <IconX size={18} />,
+                        autoClose: false,
+                        styles: { root: { marginTop: '50px' } },
+                    });
+                }
             })
             .finally(() => {
                 setStartingCheckboxes(checkboxes);

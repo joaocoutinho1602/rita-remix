@@ -20,7 +20,7 @@ export function AddLocationModal({
     setLocations,
 }: AddPatientModalProps) {
     const [open, toggle] = useState(false);
-    const [sending] = useState(false);
+    const [sending, setSending] = useState(false);
     const [errorCount, setErrorCount] = useState(0);
 
     const form = useForm({
@@ -43,6 +43,8 @@ export function AddLocationModal({
             return;
         }
 
+        setSending(true);
+
         await fetch('/api/doctor/addLocation', {
             method: 'POST',
             body: JSON.stringify(form.values),
@@ -52,9 +54,10 @@ export function AddLocationModal({
 
                 showNotification({
                     message: 'Localização adicionada com sucesso',
-                    autoClose: 5000,
                     color: 'green',
                     icon: <IconCheck size={18} />,
+                    disallowClose: true,
+                    styles: { root: { marginTop: '50px' } },
                 });
 
                 toggle(false);
@@ -69,7 +72,8 @@ export function AddLocationModal({
                             'Por favor, volte a tentar submeter o novo paciente. Entretanto, já estamos em cima do assunto.',
                         color: 'yellow',
                         icon: <IconAlertTriangle size={18} />,
-                        autoClose: 5000,
+                        disallowClose: true,
+                        styles: { root: { marginTop: '50px' } },
                     });
                 } else {
                     showNotification({
@@ -78,17 +82,19 @@ export function AddLocationModal({
                             'Vamos tentar resolver tudo o mais rapidamente possível',
                         color: 'red',
                         icon: <IconX size={18} />,
-                        autoClose: 10000,
+                        autoClose: false,
+                        styles: { root: { marginTop: '50px' } },
                     });
                 }
+            })
+            .finally(() => {
+                setSending(false);
             });
     }
 
     return (
         <div>
-            <Button onClick={() => toggle(true)}>
-                Adicionar Localização
-            </Button>
+            <Button onClick={() => toggle(true)}>Adicionar Localização</Button>
             <Modal
                 opened={open}
                 onClose={() => toggle(false)}

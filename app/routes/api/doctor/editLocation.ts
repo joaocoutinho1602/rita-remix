@@ -15,10 +15,6 @@ export const action: ActionFunction = async ({ request }) => {
         const url = new URL(request.url);
         const locationId = url.searchParams.get('locationId') as string;
 
-        // if (!(alias?.length > 0 && address?.length > 0 && locationId?.length > 0)) {
-        //     throw GenericErrors.BAD_REQUEST;
-        // }
-
         await db.location
             .update({ where: { id: locationId }, data: { alias, address } })
             .catch((error) => {
@@ -30,6 +26,8 @@ export const action: ActionFunction = async ({ request }) => {
 
                 throw GenericErrors.PRISMA_ERROR;
             });
+
+        return 'success';
     } catch (error) {
         switch (error) {
             case GenericErrors.PRISMA_ERROR: {

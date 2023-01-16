@@ -40,10 +40,11 @@ export function DeleteLocationModal({
                 toggle(false);
 
                 showNotification({
-                    message: 'Localização adicionada com sucesso',
-                    autoClose: 5000,
+                    message: 'Localização apagada com sucesso',
                     color: 'green',
                     icon: <IconCheck size={18} />,
+                    disallowClose: true,
+                    styles: { root: { marginTop: '50px' } },
                 });
             })
             .catch(() => {
@@ -53,10 +54,11 @@ export function DeleteLocationModal({
                     showNotification({
                         title: 'Algo de errado aconteceu',
                         message:
-                            'Por favor, volte a tentar submeter o novo paciente. Entretanto, já estamos em cima do assunto.',
+                            'Por favor, volte a tentar submeter as alterações. Entretanto, já estamos em cima do assunto.',
                         color: 'yellow',
                         icon: <IconAlertTriangle size={18} />,
-                        autoClose: 5000,
+                        disallowClose: true,
+                    styles: { root: { marginTop: '50px' } },
                     });
                 } else {
                     showNotification({
@@ -65,7 +67,8 @@ export function DeleteLocationModal({
                             'Vamos tentar resolver tudo o mais rapidamente possível',
                         color: 'red',
                         icon: <IconX size={18} />,
-                        autoClose: 10000,
+                        autoClose: false,
+                        styles: { root: { marginTop: '50px' } },
                     });
                 }
             })

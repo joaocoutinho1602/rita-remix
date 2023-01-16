@@ -12,12 +12,14 @@ import { errorsInForm, handleError } from '~/utils/client';
 
 type EditLocationModalProps = {
     locationId: string;
+    location: Location;
     locations: Location[];
     setLocations: React.Dispatch<React.SetStateAction<Location[]>>;
 };
 
 export function EditLocationModal({
     locationId,
+    location,
     locations,
     setLocations,
 }: EditLocationModalProps) {
@@ -26,7 +28,7 @@ export function EditLocationModal({
     const [errorCount, setErrorCount] = useState(0);
 
     const form = useForm({
-        initialValues: { alias: '', address: '' },
+        initialValues: { alias: location.alias, address: location.address },
         validate: ({ alias, address }) => ({
             alias:
                 alias.length < 2
@@ -69,10 +71,11 @@ export function EditLocationModal({
                 toggle(false);
 
                 showNotification({
-                    message: 'Localização adicionada com sucesso',
-                    autoClose: 5000,
+                    message: 'Localização alterada com sucesso',
                     color: 'green',
                     icon: <IconCheck size={18} />,
+                    disallowClose: true,
+                    styles: { root: { marginTop: '50px' } },
                 });
             })
             .catch(() => {
@@ -82,10 +85,11 @@ export function EditLocationModal({
                     showNotification({
                         title: 'Algo de errado aconteceu',
                         message:
-                            'Por favor, volte a tentar submeter o novo paciente. Entretanto, já estamos em cima do assunto.',
+                            'Por favor, volte a tentar submeter as alterações. Entretanto, já estamos em cima do assunto.',
                         color: 'yellow',
                         icon: <IconAlertTriangle size={18} />,
-                        autoClose: 5000,
+                        disallowClose: true,
+                        styles: { root: { marginTop: '50px' } },
                     });
                 } else {
                     showNotification({
@@ -94,7 +98,8 @@ export function EditLocationModal({
                             'Vamos tentar resolver tudo o mais rapidamente possível',
                         color: 'red',
                         icon: <IconX size={18} />,
-                        autoClose: 10000,
+                        autoClose: false,
+                        styles: { root: { marginTop: '50px' } },
                     });
                 }
             })
@@ -145,7 +150,7 @@ export function EditLocationModal({
                         radius="md"
                         size="md"
                     >
-                        Adicionar
+                        Salvar
                     </Button>
                 </form>
             </Modal>

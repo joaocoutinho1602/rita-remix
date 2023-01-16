@@ -74,7 +74,12 @@ function MantineTheme({ children }: { children: React.ReactNode }) {
                 withNormalizeCSS
                 withGlobalStyles
             >
-                <NotificationsProvider position="top-right" zIndex={1001}>
+                <NotificationsProvider
+                    position="top-right"
+                    zIndex={1001}
+                    autoClose={5000}
+                    transitionDuration={400}
+                >
                     {children}
                 </NotificationsProvider>
             </MantineProvider>

@@ -70,7 +70,8 @@ export function ContactModal({ desktop }: ContactModalProps) {
                     message: 'Será contactada/o em breve',
                     color: 'green',
                     icon: <IconCheck />,
-                    autoClose: 5000,
+                    disallowClose: true,
+                    styles: { root: { marginTop: '50px' } },
                 });
             })
             .catch(() => {
@@ -79,7 +80,8 @@ export function ContactModal({ desktop }: ContactModalProps) {
                     message: 'Tente submeter novamente',
                     color: 'red',
                     icon: <IconX />,
-                    autoClose: 5000,
+                    autoClose: 10000,
+                    styles: { root: { marginTop: '50px' } },
                 });
             })
             .finally(() => {

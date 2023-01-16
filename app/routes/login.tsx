@@ -180,18 +180,20 @@ export default function Login() {
                         showNotification({
                             title: 'Este email não está registado',
                             message: 'Clique aqui para se registar',
-                            autoClose: 10000,
                             onClick: () =>
                                 navigate(`/signup?email=${form.values.email}`),
+                            autoClose: false,
+                            styles: { root: { marginTop: '50px' } },
                         });
                         break;
                     }
                     case LoginErrors.WRONG_PASSWORD: {
                         showNotification({
                             message: 'A password está errada',
-                            autoClose: 5000,
                             color: 'red',
                             icon: <IconX />,
+                            disallowClose: true,
+                            styles: { root: { marginTop: '50px' } },
                         });
                         break;
                     }
@@ -201,7 +203,8 @@ export default function Login() {
                             message: 'Já estamos a tratar do assunto',
                             color: 'red',
                             icon: <IconX />,
-                            autoClose: 10000,
+                            autoClose: false,
+                            styles: { root: { marginTop: '50px' } },
                         });
                     }
                 }

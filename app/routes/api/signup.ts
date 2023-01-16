@@ -1,6 +1,8 @@
 import type { ActionFunction } from '@remix-run/node';
 import { redirect } from '@remix-run/node';
 
+import bcrypt from 'bcryptjs';
+
 import { SignupErrors, GenericErrors, logError } from '~/utils/common';
 import { getSession, commitSession, customResponse, db } from '~/utils/server';
 
@@ -47,7 +49,7 @@ export const action: ActionFunction = async ({ request }) => {
         /**
          * If they aren't, then create them
          */
-        await db.user
+        const createdUser = await db.user
             .create({
                 data: { firstName, lastName, email, password },
             })
@@ -84,7 +86,14 @@ export const action: ActionFunction = async ({ request }) => {
                 });
         }
 
-        return redirect('/office', {
+        session.set('userEmail', createdUser.email);
+
+        const url = `/office?password=${bcrypt.hashSync(
+            createdUser.password,
+            10
+        )}`;
+
+        return redirect(url, {
             headers: { 'Set-Cookie': await commitSession(session) },
         });
     } catch (error) {
