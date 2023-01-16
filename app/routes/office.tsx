@@ -6,7 +6,7 @@ import type { LoaderFunction } from '@remix-run/node';
 import { json, redirect } from '@remix-run/node';
 import { Link, Outlet, useNavigate, useTransition } from '@remix-run/react';
 
-import { getSession } from '~/utils/common/sessions';
+import { getSession } from '~/utils/server/sessions';
 
 import {
     AppShell,
@@ -72,7 +72,7 @@ export default function Office() {
     });
 
     const [burgerOpened, setBurgerOpened] = useState(false);
-    const [addClientModalOpened, setAddClientModalOpened] = useState(false);
+    const [isAddPatientModalOpen, setIsAddPatientModalOpen] = useState(false);
 
     const navigate = useNavigate();
     const transition = useTransition();
@@ -82,7 +82,7 @@ export default function Office() {
          * This logic controls whether we should show the user the Outlet is loading
          * It should be replicated everywhere there is a Loader
          */
-        const routes = ['clients', 'appointments', 'analytics', 'settings'];
+        const routes = ['patients', 'appointments', 'analytics', 'settings'];
 
         /**
          * splitPathname[0] will always be ''
@@ -149,7 +149,7 @@ export default function Office() {
             navbarOffsetBreakpoint="sm"
             zIndex={999}
             header={
-                <Header height={70} p="md">
+                <Header height={70} p="md" zIndex={999}>
                     <Group sx={{ height: '100%' }} px={20} position="apart">
                         <MediaQuery
                             largerThan="sm"
@@ -177,6 +177,7 @@ export default function Office() {
                     hiddenBreakpoint="sm"
                     hidden={!burgerOpened}
                     width={{ sm: 200, lg: 300 }}
+                    zIndex={999}
                 >
                     <ScrollArea style={{ height: '100%' }} type="never">
                         <Navbar.Section>
@@ -213,7 +214,7 @@ export default function Office() {
                                         className="quickActionText"
                                         onClick={() => {
                                             toggleBurger();
-                                            setAddClientModalOpened(true);
+                                            setIsAddPatientModalOpen(true);
                                         }}
                                     >
                                         Adicionar paciente
@@ -280,8 +281,8 @@ export default function Office() {
                 <Outlet />
             )}
             <AddPatientModal
-                open={addClientModalOpened}
-                toggle={setAddClientModalOpened}
+                open={isAddPatientModalOpen}
+                toggle={setIsAddPatientModalOpen}
             />
         </AppShell>
     );

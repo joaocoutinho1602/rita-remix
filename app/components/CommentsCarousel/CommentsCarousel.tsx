@@ -41,35 +41,53 @@ export function CommentsCarousel({ mobile }: CommentsCarouselProps) {
             slideGap="md"
             mx="auto"
             withControls={!mobile}
-            withIndicators={!mobile}
+            withIndicators={false}
             loop
             styles={{
-                slide: { maxWidth: 400 },
+                slide: { maxWidth: 400, padding: '1rem' },
             }}
         >
             {comments.map(({ id, created_at, location, text, type }) => {
                 const date = dayjs(created_at).format('DD/MM/YYYY');
 
                 return (
-                    <Carousel.Slide key={id} sx={classes.slide}>
-                        <Card withBorder shadow="sm" radius="md">
-                            <div>
-                                <IconStar fill="#ffec99" strokeWidth={1.5} />
-                                <IconStar fill="#ffec99" strokeWidth={1.5} />
-                                <IconStar fill="#ffec99" strokeWidth={1.5} />
-                                <IconStar fill="#ffec99" strokeWidth={1.5} />
-                                <IconStar fill="#ffec99" strokeWidth={1.5} />
-                            </div>
-                            <div className="commentText">{text}</div>
-                            <div className="commentContainer">
-                                <div className="commentType">{type}</div>
-                                <Space w="md" />
-                                <div className="commentDateLocation">
-                                    {`${date}, ${location}`}
+                        <Carousel.Slide key={id} sx={classes.slide}>
+                            <Card
+                                shadow="0px 0px 10px 5px rgba(0,0,0,0.1)"
+                                radius="md"
+                            >
+                                <div>
+                                    <IconStar
+                                        fill="#ffec99"
+                                        strokeWidth={1.5}
+                                    />
+                                    <IconStar
+                                        fill="#ffec99"
+                                        strokeWidth={1.5}
+                                    />
+                                    <IconStar
+                                        fill="#ffec99"
+                                        strokeWidth={1.5}
+                                    />
+                                    <IconStar
+                                        fill="#ffec99"
+                                        strokeWidth={1.5}
+                                    />
+                                    <IconStar
+                                        fill="#ffec99"
+                                        strokeWidth={1.5}
+                                    />
                                 </div>
-                            </div>
-                        </Card>
-                    </Carousel.Slide>
+                                <div className="commentText">{text}</div>
+                                <div className="commentContainer">
+                                    <div className="commentType">{type}</div>
+                                    <Space w="md" />
+                                    <div className="commentDateLocation">
+                                        {`${date}, ${location}`}
+                                    </div>
+                                </div>
+                            </Card>
+                        </Carousel.Slide>
                 );
             })}
         </Carousel>

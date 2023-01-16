@@ -34,7 +34,7 @@ model Doctor {
   locations         Location[]
 }
 
-// A Location is a place where the Doctor can give Appointments. It is composed by a full address, which represents the physical location in the real world, and also an alias, which is a name that the Doctor can choose to call it for convenience (e.g. the address is "Rua Luís António Correia, nº 10, 6º frente, 4715-310, Braga", and the alias is simply "Braga"). Online is a special case of a Location that has an empty address
+// A Location is a place where the Doctor can give Appointments. It is composed by a full address, which represents the physical location in the real world, and also an alias, which is a name that the Doctor can choose to call it for convenience (e.g. the address is "Rua Luís António Correia, nº 10, 6º frente, 4715-310, Braga", and the alias is simply "Braga"). There is a Location which is created and associated to each Doctor when creating an account, which is Online
 model Location {
   id          String @id @default(uuid())
   address     String @default("")

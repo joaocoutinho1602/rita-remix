@@ -1,6 +1,7 @@
 export enum GenericErrors {
     GOOGLE_ERROR = 'GOOGLE_ERROR',
     PRISMA_ERROR = 'PRISMA_ERROR',
+    UNAUTHORIZED = 'UNAUTHORIZED',
     UNKNOWN_ERROR = 'UNKNOWN_ERROR',
 }
 

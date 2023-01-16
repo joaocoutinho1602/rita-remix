@@ -66,24 +66,20 @@ export function ContactModal({ desktop }: ContactModalProps) {
                 setSent(true);
                 setTimeout(toggle, 5000);
                 showNotification({
-                    id: 'email-success',
-                    autoClose: 5000,
                     title: 'Enviado com sucesso',
-                    message: 'será contactada/o em breve',
-                    color: 'teal',
+                    message: 'Será contactada/o em breve',
+                    color: 'green',
                     icon: <IconCheck />,
-                    loading: false,
+                    autoClose: 5000,
                 });
             })
             .catch(() => {
                 showNotification({
-                    id: 'email-error',
-                    autoClose: 5000,
                     title: 'Ocorreu um erro',
-                    message: 'tente submeter novamente',
+                    message: 'Tente submeter novamente',
                     color: 'red',
                     icon: <IconX />,
-                    loading: false,
+                    autoClose: 5000,
                 });
             })
             .finally(() => {

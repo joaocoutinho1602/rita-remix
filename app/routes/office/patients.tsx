@@ -6,8 +6,8 @@ import { useLoaderData, useTransition } from '@remix-run/react';
 
 import { Card, Loader, Space } from '@mantine/core';
 
-import { GenericErrors, getSession, logError } from '~/utils/common';
-import { db } from '~/utils/server';
+import { GenericErrors, logError } from '~/utils/common';
+import { db, getSession, SessionData } from '~/utils/server';
 
 import styles from '~/styles/office/patients.css';
 
@@ -16,10 +16,10 @@ export function links() {
 }
 
 export const loader: LoaderFunction = async ({ request }) => {
-    const session = await getSession(request.headers.get('Cookie'));
-
     try {
-        const email = session.get('userEmail');
+        const session = await getSession(request.headers.get('Cookie'));
+
+        const email = session.get(SessionData.EMAIL);
 
         if (!email?.length) {
             return redirect('/login');

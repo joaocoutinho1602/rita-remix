@@ -1,19 +1,13 @@
 import type { ActionArgs } from '@remix-run/node';
 import { json } from '@remix-run/node';
 
-import {
-    getSession,
-    logError,
-    GenericErrors,
-    AddClientErrors,
-} from '~/utils/common';
-import { db } from '~/utils/server';
-import { customResponse } from '~/utils/server/response';
+import { logError, GenericErrors, AddClientErrors } from '~/utils/common';
+import { customResponse, db, getSession, SessionData } from '~/utils/server';
 
 export async function action({ request }: ActionArgs) {
     try {
         const session = await getSession(request.headers.get('Cookie'));
-        const doctorEmail = session.get('userEmail');
+        const doctorEmail = session.get(SessionData.EMAIL);
 
         const {
             firstName,

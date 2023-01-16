@@ -12,7 +12,7 @@ import {
 import { TextInput, Select, Button, Checkbox, Space } from '@mantine/core';
 import { useForm } from '@mantine/form';
 
-import { IconQuestionCircle } from '@tabler/icons';
+import { IconQuestionCircle, IconX } from '@tabler/icons';
 
 import {
     DoctorSpecialty,
@@ -181,9 +181,11 @@ export default function Signup() {
                     }
                     default: {
                         showNotification({
-                            title: 'Algo de muito errado aconteceu',
+                            title: 'Algo de errado aconteceu',
                             message: 'Já estamos a tratar do assunto',
+                            icon: <IconX />,
                             color: 'red',
+                            autoClose: 10000,
                         });
                     }
                 }

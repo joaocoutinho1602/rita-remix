@@ -12,7 +12,10 @@ export type CustomFormEvent =
  * @param form Mantine form
  * @returns false if there are errors, true if there aren't
  */
-export const errorsInForm = (e: CustomFormEvent, form: UseFormReturnType<any>) => {
+export const errorsInForm = (
+    e: CustomFormEvent,
+    form: UseFormReturnType<any>
+) => {
     e.preventDefault();
 
     if (form.validate().hasErrors) {

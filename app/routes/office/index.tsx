@@ -12,17 +12,16 @@ import { uniqBy } from 'lodash';
 import { Card, ColorSwatch, Indicator, Loader, Space } from '@mantine/core';
 import { Calendar } from '@mantine/dates';
 
-import { db } from '~/utils/server';
+import { db, getSession, SessionData } from '~/utils/server';
 
 import {
     GenericErrors,
-    getSession,
     getURL,
     googleAuthClient,
     googleCalendarAPI,
     GoogleErrors,
     logError,
-    setCredentials,
+    setGoogleCredentials,
 } from '~/utils/common';
 
 import styles from '~/styles/office/index.css';
@@ -39,19 +38,20 @@ export function links() {
 }
 
 export const loader: LoaderFunction = async ({ request }) => {
-    const session = await getSession(request.headers.get('Cookie'));
-
     try {
-        const email = session.get('userEmail');
-        const googleRefreshToken = session.get('userGoogleRefreshToken');
+        const session = await getSession(request.headers.get('Cookie'));
 
+        const email = session.get(SessionData.EMAIL);
         if (!email?.length) {
             return redirect('/login');
         }
 
+        const googleRefreshToken = session.get(
+            SessionData.GOOGLE_REFRESH_TOKEN
+        );
         if (!googleRefreshToken?.length) {
             /**
-             ** If the user is authenticated but we don't have their Google refresh token, we have to generate the Google authentication URL
+             * If the user is authenticated but we don't have their Google refresh token, we have to generate the Google authentication URL
              */
             const response = await fetch(
                 `${getURL()}/api/google/generateAuthUrl`,
@@ -63,101 +63,101 @@ export const loader: LoaderFunction = async ({ request }) => {
             const { googleAuthorizationUrl } = await response.json();
 
             return json({ googleAuthorizationUrl });
-        } else {
-            setCredentials({ refreshToken: googleRefreshToken });
+        }
 
-            const user = await db.user
-                .findUnique({
-                    where: { email },
-                    select: {
-                        doctor: {
-                            select: {
-                                googleData: { select: { calendars: true } },
-                            },
+        setGoogleCredentials(googleRefreshToken);
+
+        const user = await db.user
+            .findUnique({
+                where: { email },
+                select: {
+                    doctor: {
+                        select: {
+                            googleData: { select: { calendars: true } },
                         },
                     },
-                })
-                .catch((error) => {
-                    logError({
-                        filePath: '/office/index.tsx',
-                        message: `prisma error - SELECT calendars FROM (SELECT googleData FROM (SELECT doctor FROM User WHERE email=${email}))`,
-                        error,
-                    });
-
-                    throw GenericErrors.PRISMA_ERROR;
+                },
+            })
+            .catch((error) => {
+                logError({
+                    filePath: '/office/index.tsx',
+                    message: `prisma error - SELECT calendars FROM (SELECT googleData FROM (SELECT doctor FROM User WHERE email=${email}))`,
+                    error,
                 });
 
-            const userCalendars = user?.doctor?.googleData?.calendars || [];
+                throw GenericErrors.PRISMA_ERROR;
+            });
 
-            const [timeMin, timeMax] = getEventsTimeSlice(request.url);
+        const userCalendars = user?.doctor?.googleData?.calendars || [];
 
-            const allCalendarsPromise = googleCalendarAPI.calendarList
-                .list({ auth: googleAuthClient })
-                .catch(async (error) => {
-                    logError({
-                        filePath: '/office/index.tsx',
-                        message: 'googleCalendarAPI.calendarList error',
-                        error,
-                    });
+        const [timeMin, timeMax] = getEventsTimeSlice(request.url);
 
-                    throw GoogleErrors.ERROR_FETCHING_EVENTS;
+        const allCalendarsPromise = googleCalendarAPI.calendarList
+            .list({ auth: googleAuthClient })
+            .catch(async (error) => {
+                logError({
+                    filePath: '/office/index.tsx',
+                    message: 'googleCalendarAPI.calendarList error',
+                    error,
                 });
 
-            const allColorsPromise = googleCalendarAPI.colors
-                .get({ auth: googleAuthClient })
-                .catch(async (error) => {
-                    logError({
-                        filePath: '/office/index.tsx',
-                        message: 'googleCalendarAPI.calendarList error',
-                        error,
-                    });
+                throw GoogleErrors.ERROR_FETCHING_EVENTS;
+            });
 
-                    throw GoogleErrors.ERROR_FETCHING_EVENTS;
+        const allColorsPromise = googleCalendarAPI.colors
+            .get({ auth: googleAuthClient })
+            .catch(async (error) => {
+                logError({
+                    filePath: '/office/index.tsx',
+                    message: 'googleCalendarAPI.calendarList error',
+                    error,
                 });
 
-            const allCalendarsEventsPromises = userCalendars.map(
-                ({ googleCalendarId }) =>
-                    googleCalendarAPI.events
-                        .list({
-                            auth: googleAuthClient,
-                            calendarId: googleCalendarId as string,
-                            timeMin,
-                            timeMax,
-                        })
-                        .catch(async (error) => {
-                            logError({
-                                filePath: '/office/index.tsx',
-                                message: `googleCalendarAPI.events error ~ calendarId: ${googleCalendarId}, timeMin: ${timeMin}, timeMax: ${timeMax}`,
-                                error,
-                            });
+                throw GoogleErrors.ERROR_FETCHING_EVENTS;
+            });
 
-                            throw GoogleErrors.ERROR_FETCHING_EVENTS;
-                        })
-            );
+        const allCalendarsEventsPromises = userCalendars.map(
+            ({ googleCalendarId }) =>
+                googleCalendarAPI.events
+                    .list({
+                        auth: googleAuthClient,
+                        calendarId: googleCalendarId as string,
+                        timeMin,
+                        timeMax,
+                    })
+                    .catch(async (error) => {
+                        logError({
+                            filePath: '/office/index.tsx',
+                            message: `googleCalendarAPI.events error ~ calendarId: ${googleCalendarId}, timeMin: ${timeMin}, timeMax: ${timeMax}`,
+                            error,
+                        });
 
-            const [allColors, allCalendars, ...allCalendarsEvents] =
-                await Promise.all([
-                    allColorsPromise,
-                    allCalendarsPromise,
-                    ...allCalendarsEventsPromises,
-                ]);
+                        throw GoogleErrors.ERROR_FETCHING_EVENTS;
+                    })
+        );
 
-            const eventsWithColor = mapEventsWithColor(
-                userCalendars,
-                allCalendars,
-                allCalendarsEvents,
-                allColors
-            ).filter((event) => event.organizer);
+        const [allColors, allCalendars, ...allCalendarsEvents] =
+            await Promise.all([
+                allColorsPromise,
+                allCalendarsPromise,
+                ...allCalendarsEventsPromises,
+            ]);
 
-            const uniqueEventsWithColor = uniqBy(
-                eventsWithColor,
-                (event) => event.start?.dateTime || event.start?.date
-            );
+        const eventsWithColor = mapEventsWithColor(
+            userCalendars,
+            allCalendars,
+            allCalendarsEvents,
+            allColors
+        ).filter((event) => event.organizer);
 
-            const events = eventsByDay(uniqueEventsWithColor);
+        const uniqueEventsWithColor = uniqBy(
+            eventsWithColor,
+            (event) => event.start?.dateTime || event.start?.date
+        );
 
-            return json({ events });
-        }
+        const events = eventsByDay(uniqueEventsWithColor);
+
+        return json({ events });
     } catch (error) {
         switch (error) {
             case GoogleErrors.ERROR_FETCHING_EVENTS: {
@@ -271,7 +271,7 @@ export default function OfficeIndex() {
             <br />
             {value && events?.[makeActualDate(value)]?.length ? (
                 <div className="events">
-                    <br/>
+                    <br />
                     {events?.[makeActualDate(value)].map(
                         (
                             { id, summary, start, end, color, location },
@@ -287,7 +287,10 @@ export default function OfficeIndex() {
 
                             return (
                                 <div className="eventCardContainer" key={id}>
-                                    <Card shadow="0px 0px 10px 5px rgba(0,0,0,0.1)" radius="md">
+                                    <Card
+                                        shadow="0px 0px 10px 5px rgba(0,0,0,0.1)"
+                                        radius="md"
+                                    >
                                         <div className="colorSwatchTimeContainer">
                                             {color.length ? (
                                                 <ColorSwatch

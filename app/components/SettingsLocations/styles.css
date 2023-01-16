@@ -1,0 +1,42 @@
+.subtitle {
+    font-weight: 400;
+    margin-top: -1rem;
+}
+
+.locationsContainer {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.cardContainer {
+    max-width: 80vw;
+}
+
+.card {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.info {
+    display: flex;
+    flex-direction: column;
+    align-items: start;
+    width: 100%;
+}
+
+.address {
+    color: #868e96;
+    font-size: 14px;
+}
+
+.actions {
+    display: flex;
+    flex-direction: column;
+    min-height: 5rem;
+    margin-left: 1rem;
+    justify-content: space-between;
+    align-items: space-between;
+}

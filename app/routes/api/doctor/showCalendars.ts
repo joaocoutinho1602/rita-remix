@@ -1,13 +1,17 @@
 import type { ActionFunction } from '@remix-run/node';
 import { json } from '@remix-run/node';
 
-import { GenericErrors, getSessionEmail, logError } from '~/utils/common';
-import { db } from '~/utils/server';
+import { GenericErrors, logError } from '~/utils/common';
+import { db, getSession, SessionData } from '~/utils/server';
 
 export const action: ActionFunction = async ({ request }) => {
     try {
-        const email = await getSessionEmail(request);
+        const session = await getSession(request.headers.get('Cookie'));
+        const email = session.get(SessionData.EMAIL);
 
+        /**
+         * Checkboxes is an object that matches every Google calendar ID with a boolean that represents if the calendar should be shown in Medici or not
+         */
         const {
             checkboxes,
             googleDataId,

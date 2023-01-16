@@ -1,29 +1,25 @@
-import { useMemo, useState } from 'react';
-
 import type { LoaderFunction } from '@remix-run/node';
 import { json, redirect } from '@remix-run/node';
 import { useLoaderData } from '@remix-run/react';
 
-import { isEqual } from 'lodash';
-
-import { Button, ColorSwatch, Checkbox } from '@mantine/core';
+import type { Location } from '@prisma/client';
 
 import {
-    getSession,
-    setCredentials,
+    setGoogleCredentials,
     googleCalendarAPI,
     getURL,
     GenericErrors,
     logError,
 } from '~/utils/common';
-import { db } from '~/utils/server';
-import type { CustomFormEvent} from '~/utils/client';
-import { handleError } from '~/utils/client';
+import { db, getSession, SessionData } from '~/utils/server';
+
+import { SettingsCalendars } from '~/components/SettingsCalendars';
+import { SettingsLocations } from '~/components/SettingsLocations';
 
 import styles from '~/styles/office/settings.css';
-import { showNotification } from '@mantine/notifications';
+import settingsLocationsStyles from '~/components/SettingsLocations/styles.css';
 
-type CalendarsObject = {
+export type CalendarsObject = {
     [key: string]: {
         id: string;
         selected: boolean;
@@ -34,18 +30,23 @@ type CalendarsObject = {
     };
 };
 
-type CheckboxesObject = { [key: string]: boolean };
+export type CheckboxesObject = { [key: string]: boolean };
 
 export function links() {
-    return [{ rel: 'stylesheet', href: styles }];
+    return [
+        { rel: 'stylesheet', href: styles },
+        { rel: 'stylesheet', href: settingsLocationsStyles },
+    ];
 }
 
 export const loader: LoaderFunction = async ({ request }) => {
-    const session = await getSession(request.headers.get('Cookie'));
-
     try {
-        const email = session.get('userEmail');
-        const googleRefreshToken = session.get('userGoogleRefreshToken');
+        const session = await getSession(request.headers.get('Cookie'));
+
+        const email = session.get(SessionData.EMAIL);
+        const googleRefreshToken = session.get(
+            SessionData.GOOGLE_REFRESH_TOKEN
+        );
 
         if (!email?.length) {
             return redirect('/login');
@@ -67,7 +68,7 @@ export const loader: LoaderFunction = async ({ request }) => {
             return json({ googleAuthorizationUrl });
         }
 
-        setCredentials({ refreshToken: googleRefreshToken });
+        setGoogleCredentials(googleRefreshToken);
 
         /**
          * First we get all the Google calendars on Google and on Medici
@@ -95,6 +96,7 @@ export const loader: LoaderFunction = async ({ request }) => {
                                     },
                                 },
                             },
+                            locations: true,
                         },
                     },
                 },
@@ -154,16 +156,19 @@ export const loader: LoaderFunction = async ({ request }) => {
         /**
          * Lastly we create an object that represents the initial values for the checkboxes that are shown to the user
          */
-        const checkboxes = Object.entries(calendars).reduce(
+        const loaderCheckboxes = Object.entries(calendars).reduce(
             (acc, [key, value]) =>
                 Object.assign({}, acc, { [key]: value.selected }),
             checkboxesInitialValues
         );
 
+        const loaderLocations = user?.doctor?.locations;
+
         return json({
             googleDataId: user?.doctor?.googleData?.id,
             calendars,
-            checkboxes,
+            loaderCheckboxes,
+            loaderLocations,
         });
     } catch (error) {
         switch (error) {
@@ -184,104 +189,33 @@ export const loader: LoaderFunction = async ({ request }) => {
 };
 
 export default function Settings() {
-    const data = useLoaderData<{
+    const {
+        googleAuthorizationUrl,
+        googleDataId,
+        calendars,
+        loaderCheckboxes,
+        loaderLocations,
+    } = useLoaderData<{
         googleDataId?: string;
-        calendars?: CalendarsObject;
-        checkboxes?: CheckboxesObject;
         googleAuthorizationUrl?: string;
+        calendars?: CalendarsObject;
+        loaderCheckboxes?: CheckboxesObject;
+        loaderLocations: Location[];
         error?: string;
     }>();
-
-    const [checkboxes, setCheckboxes] = useState<{ [key: string]: boolean }>(
-        data?.checkboxes || {}
-    );
-
-    const saveButtonDisabled = useMemo(
-        () => isEqual(data?.checkboxes || {}, checkboxes),
-        [checkboxes, data?.checkboxes]
-    );
-
-    async function submit(e: CustomFormEvent) {
-        e.preventDefault();
-
-        await fetch('/api/doctor/showCalendars', {
-            method: 'POST',
-            body: JSON.stringify({
-                checkboxes,
-                googleDataId: data?.googleDataId,
-            }),
-        })
-            .then((response) => {
-                handleError(response);
-                showNotification({
-                    message: 'Alterações submetidas com sucesso',
-                    color: 'green',
-                });
-            })
-            .catch(() => {
-                showNotification({
-                    title: 'Algo de errado aconteceu',
-                    message:
-                        'Por favor, volte a tentar submeter as alterações. Entretanto, já estamos em cima do assunto.',
-                    color: 'yellow',
-                });
-            });
-    }
 
     return (
         <div>
             <h1>Definições</h1>
             <br />
-            <h2>Calendários</h2>
-            <h5>
-                Defina aqui quais os calendários que aparecem na sua página
-                principal
-            </h5>
-            <form onSubmit={submit}>
-                <div className="calendar">
-                    {Object.values(data?.calendars || {})?.map(
-                        ({
-                            id,
-                            summary,
-                            description,
-                            backgroundColor,
-                            isMediciCalendar,
-                        }) => (
-                            <div key={id} className="row">
-                                <Checkbox
-                                    checked={checkboxes[id]}
-                                    disabled={isMediciCalendar}
-                                    onChange={() =>
-                                        setCheckboxes(
-                                            Object.assign({}, checkboxes, {
-                                                [id]: !checkboxes[id],
-                                            })
-                                        )
-                                    }
-                                />
-                                <ColorSwatch color={backgroundColor} size={18} />
-                                <div className="summary">{summary}</div>
-                            </div>
-                        )
-                    )}
-                </div>
-                <br />
-                <Button
-                    type="submit"
-                    name="action"
-                    value="googleDataId"
-                    disabled={saveButtonDisabled}
-                    onClick={submit}
-                >
-                    Salvar
-                </Button>
-            </form>
+            <SettingsCalendars
+                googleAuthorizationUrl={googleAuthorizationUrl}
+                googleDataId={googleDataId}
+                calendars={calendars}
+                loaderCheckboxes={loaderCheckboxes}
+            />
             <br />
-            <br />
-            <h2>Localizações</h2>
-            <h5>Aqui pode gerir as localizações onde dá consultas</h5>
-            <br />
-            <br />
+            <SettingsLocations loaderLocations={loaderLocations} />
             <br />
             {/* <Form method="post">
                 <Button type="submit" name="action" value="deleteAccount">

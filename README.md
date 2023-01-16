@@ -29,9 +29,9 @@ Open up [http://localhost:3000](http://localhost:3000)
 ## TODOs
 
 NEXT UP:
-1. Finish User-Doctor-Client-Patient model
-2. Document Prisma schema
-3. Implement Add Patient to Doctor functionality (AddClientModal)
+1. Test EditLocation and DeleteLocation
+2. Test AddPatient
+3. Start creation of Appointments for Patients
 
 CRITICAL:
 1. Deal with Google errors when associating Google account, remember Google is source of truth

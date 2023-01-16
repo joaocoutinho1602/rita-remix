@@ -13,7 +13,9 @@ const { getSession, commitSession, destroySession } =
         },
     });
 
-const getSessionEmail = async (request: Request) =>
-    (await getSession(request.headers.get('Cookie'))).get('userEmail');
+const SessionData = {
+    EMAIL: 'userEmail',
+    GOOGLE_REFRESH_TOKEN: 'userGoogleRefreshToken',
+}
 
-export { getSession, commitSession, destroySession, getSessionEmail };
+export { getSession, commitSession, destroySession, SessionData };

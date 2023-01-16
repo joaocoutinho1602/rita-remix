@@ -1,17 +1,8 @@
 import type { ActionFunction } from '@remix-run/node';
 import { redirect } from '@remix-run/node';
 
-import bcrypt from 'bcryptjs';
-
-import {
-    getSession,
-    SignupErrors,
-    GenericErrors,
-    commitSession,
-    logError,
-} from '~/utils/common';
-import { db } from '~/utils/server';
-import { customResponse } from '~/utils/server/response';
+import { SignupErrors, GenericErrors, logError } from '~/utils/common';
+import { getSession, commitSession, customResponse, db } from '~/utils/server';
 
 export const action: ActionFunction = async ({ request }) => {
     try {
@@ -46,11 +37,17 @@ export const action: ActionFunction = async ({ request }) => {
                 throw GenericErrors.PRISMA_ERROR;
             });
 
+        /**
+         * If the User is already registered with Medici, then they can't signup again
+         */
         if (registeredUser?.email) {
             throw SignupErrors.EMAIL_ALREADY_REGISTERED;
         }
 
-        const createdUser = await db.user
+        /**
+         * If they aren't, then create them
+         */
+        await db.user
             .create({
                 data: { firstName, lastName, email, password },
             })
@@ -64,10 +61,17 @@ export const action: ActionFunction = async ({ request }) => {
                 throw SignupErrors.ERROR_CREATING_USER;
             });
 
+        /**
+         * If the User is also registering as a Doctor, then create it and add the default location of Online
+         */
         if (doctorSpecialtyId?.length) {
             await db.doctor
                 .create({
-                    data: { userEmail: email, doctorSpecialtyId },
+                    data: {
+                        userEmail: email,
+                        doctorSpecialtyId,
+                        locations: { create: { alias: 'Online' } },
+                    },
                 })
                 .catch((error) => {
                     logError({
@@ -79,14 +83,8 @@ export const action: ActionFunction = async ({ request }) => {
                     throw SignupErrors.ERROR_CREATING_DOCTOR;
                 });
         }
-        session.set('userEmail', createdUser.email);
 
-        const url = `/office?password=${bcrypt.hashSync(
-            createdUser.password,
-            10
-        )}`;
-
-        return redirect(url, {
+        return redirect('/office', {
             headers: { 'Set-Cookie': await commitSession(session) },
         });
     } catch (error) {

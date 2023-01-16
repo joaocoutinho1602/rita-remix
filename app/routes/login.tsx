@@ -22,14 +22,10 @@ import { IconAlertCircle, IconX } from '@tabler/icons';
 
 import type { CustomFormEvent } from '~/utils/client/forms';
 import { errorsInForm, handleError } from '~/utils/client/forms';
-import {
-    ErrorCodes,
-    LoginErrors,
-    SuccessCodes,
-    getSession,
-} from '~/utils/common';
+import { ErrorCodes, LoginErrors, SuccessCodes } from '~/utils/common';
 
 import styles from '~/styles/login.css';
+import { getSession, SessionData } from '~/utils/server';
 
 export function links() {
     return [{ rel: 'stylesheet', href: styles }];
@@ -37,8 +33,9 @@ export function links() {
 
 export const loader: LoaderFunction = async ({ request }) => {
     const session = await getSession(request.headers.get('Cookie'));
+    const email = session.get(SessionData.EMAIL);
 
-    if (session.has('userEmail')) {
+    if (email?.length) {
         return redirect('/office');
     }
 
@@ -192,16 +189,19 @@ export default function Login() {
                     case LoginErrors.WRONG_PASSWORD: {
                         showNotification({
                             message: 'A password está errada',
+                            autoClose: 5000,
                             color: 'red',
-                            icon: <IconX/>,
+                            icon: <IconX />,
                         });
                         break;
                     }
                     default: {
                         showNotification({
-                            title: 'Algo de muito errado aconteceu',
+                            title: 'Algo de errado aconteceu',
                             message: 'Já estamos a tratar do assunto',
                             color: 'red',
+                            icon: <IconX />,
+                            autoClose: 10000,
                         });
                     }
                 }

@@ -4,19 +4,17 @@ import { redirect } from '@remix-run/node';
 import bcrypt from 'bcryptjs';
 
 import {
-    commitSession,
-    getSession,
     ErrorCodes,
     GenericErrors,
     LoginErrors,
     logError,
-    setCredentials,
 } from '~/utils/common';
-import { db } from '~/utils/server';
+import { commitSession, db, getSession, SessionData } from '~/utils/server';
 
 export const action: ActionFunction = async ({ request }) => {
     try {
         const session = await getSession(request.headers.get('Cookie'));
+
         const { email, password, keepLoggedIn, fromLocalStorage } =
             await request.json();
 
@@ -64,13 +62,13 @@ export const action: ActionFunction = async ({ request }) => {
         }
 
         /**
-         * If the email and the password match, set the credentials on the Google Auth Client and redirect the user to the home page
+         * If the email and the password match, set the email and the refresh token in session and redirect the user to the home page
          */
-        session.set('userEmail', email);
-        if (user.doctor?.googleData?.refreshToken) {
-            setCredentials({
-                refreshToken: user.doctor?.googleData?.refreshToken,
-            });
+        session.set(SessionData.EMAIL, email);
+
+        const refreshToken = user.doctor?.googleData?.refreshToken;
+        if (refreshToken) {
+            session.set(SessionData.GOOGLE_REFRESH_TOKEN, refreshToken);
         }
 
         /**
