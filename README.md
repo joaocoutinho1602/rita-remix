@@ -60,13 +60,3 @@ Eventually:
 In a given user's session we are storing:
 
 1. `userEmail` - the user's email, stored in the session for easy identification of the user
-
-## Error handling
-
-Throughout the lifetime of a call to an API route errors may be thrown from essentially anywhere. Due to this reason, every function corresponding to an API route should start with a try/catch block so that every possible error occurring within the lifetime of this call is caught and is uniformly handled in a single place.
-
-Many errors are natural and should be handled with a specific error message so they can be identified and handled appropriately, both within the API route and also on the client. An example of this is when a user is trying to login but they input an email that isn't registered. Naturally, if the user isn't registered, the database won't return anything. Knowing this, we can throw an error message that says this happened and catch it in that catch block we mentioned previously. Since this is expected behaviour, we don't need to log this to our external logging service. Instead, we can simply send the error message back to the client where it will be caught as an error and will display an error message to the user, even prompting them to register an account with that email since it isn't registered.
-
-Other errors are unexpected and may come from an unknown source. Because of this, the handling of errors should be handled with a switch/case statement with one case for every expected error and then a default case for every other unexpected error. The expected errors are manually thrown, so if it is required we can log to our logging service just before throwing them and then we don't need to log again when that case is found inside our switch/case statement. On the other hand, the default case should always log something before doing anything else.
-
-Regardless of whether we are met with an expected or unexpected error, we should always return back to the client an error code and a message. Using this message the client can then react appropriately and fail gracefully using the same practice. For an application of this explanation you can check ~/routes/login.tsx and ~/api/routes/login.tsx where you'll see this exact mechanism being used: the client makes a request to an API route, the API route throws and catches errors, logs where appropriate, returns a message to the client, and the client catches the error message and reacts appropriately.
