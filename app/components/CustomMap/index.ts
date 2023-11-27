@@ -1,1 +1,0 @@
-export { CustomMap } from './CustomMap';

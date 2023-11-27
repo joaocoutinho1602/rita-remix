@@ -22,6 +22,8 @@ export const action: ActionFunction = async ({ request }) => {
             .findUnique({
                 where: { email },
                 select: {
+                    id: true,
+                    email: true,
                     password: true,
                     doctor: {
                         select: {
@@ -64,7 +66,8 @@ export const action: ActionFunction = async ({ request }) => {
         /**
          * If the email and the password match, set the email and the refresh token in session and redirect the user to the home page
          */
-        session.set(SessionData.EMAIL, email);
+        session.set(SessionData.ID, user.id);
+        session.set(SessionData.EMAIL, user.email);
 
         const refreshToken = user.doctor?.googleData?.refreshToken;
         if (refreshToken) {

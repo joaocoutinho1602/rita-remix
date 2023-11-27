@@ -10,7 +10,7 @@ export type CustomFormEvent =
  * Validates if a Mantine form has errors. Also prevents default
  * @param e event, either click or form submit by pressing Enter key
  * @param form Mantine form
- * @returns false if there are errors, true if there aren't
+ * @returns true if there are errors, false if there aren't
  */
 export const errorsInForm = (
     e: CustomFormEvent,

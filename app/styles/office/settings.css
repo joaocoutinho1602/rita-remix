@@ -19,3 +19,99 @@
     word-wrap: break-all;
     overflow: auto;
 }
+
+.servicesListContainer {
+    display: grid;
+    grid-template-columns: 70vw;
+    grid-gap: 2rem;
+}
+
+.serviceCard {
+    display: grid;
+    grid-template-columns: 90fr 10fr;
+}
+
+.serviceInfo {
+    display: flex;
+    flex-direction: column;
+}
+
+.serviceDescription {
+    color: #868e96;
+    font-size: 14px;
+}
+
+.serviceActions {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+}
+
+.noPivotsErrorContainer {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    margin-top: 0.5rem;
+    margin-right: 3rem;
+}
+
+.noPivotsErrorMessage {
+    margin-left: 0.5rem;
+}
+
+.servicesForm {
+    display: grid;
+    grid-template-columns: 1;
+    grid-template-rows: auto;
+    row-gap: 1rem;
+    grid-template-areas:
+        'serviceInputs'
+        'settingsButtons';
+}
+
+.serviceInputs {
+    display: grid;
+    grid-template-columns: 1;
+    grid-template-rows: 1 1 1;
+    row-gap: 0.5rem;
+    grid-template-areas:
+        'serviceCreationName'
+        'serviceCreationDescription'
+        'serviceCreationButton';
+}
+
+.priceCheckbox {
+    margin-top: 1rem;
+}
+
+.settingsButtons {
+    margin-top: 1rem;
+    justify-self: start;
+}
+
+.locationsListContainer {
+    display: grid;
+    grid-template-columns: 70vw;
+    grid-gap: 2rem;
+}
+
+.locationCard {
+    display: grid;
+    grid-template-columns: 90fr 10fr;
+}
+
+.locationInfo {
+    display: flex;
+    flex-direction: column;
+}
+
+.locationAddress {
+    color: #868e96;
+    font-size: 14px;
+}
+
+.locationActions {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+}

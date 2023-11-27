@@ -1,0 +1,20 @@
+.info {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    grid-gap: 0.5rem;
+}
+
+.patients {
+    display: flex;
+    flex-direction: row;
+}
+
+.patientContainer {
+    display: flex;
+    flex-direction: row;
+}
+
+.patientName {
+    cursor: pointer;
+    text-decoration: underline;
+}

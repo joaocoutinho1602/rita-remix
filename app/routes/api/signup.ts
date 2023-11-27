@@ -4,7 +4,7 @@ import { redirect } from '@remix-run/node';
 import bcrypt from 'bcryptjs';
 
 import { SignupErrors, GenericErrors, logError } from '~/utils/common';
-import { getSession, commitSession, customResponse, db } from '~/utils/server';
+import { getSession, commitSession, customError, db } from '~/utils/server';
 
 export const action: ActionFunction = async ({ request }) => {
     try {
@@ -99,16 +99,16 @@ export const action: ActionFunction = async ({ request }) => {
     } catch (error) {
         switch (error) {
             case SignupErrors.EMAIL_ALREADY_REGISTERED: {
-                return customResponse(SignupErrors.EMAIL_ALREADY_REGISTERED);
+                return customError(SignupErrors.EMAIL_ALREADY_REGISTERED);
             }
             case SignupErrors.ERROR_CREATING_USER: {
-                return customResponse(SignupErrors.ERROR_CREATING_USER);
+                return customError(SignupErrors.ERROR_CREATING_USER);
             }
             case SignupErrors.ERROR_CREATING_DOCTOR: {
-                return customResponse(SignupErrors.ERROR_CREATING_DOCTOR);
+                return customError(SignupErrors.ERROR_CREATING_DOCTOR);
             }
             case GenericErrors.PRISMA_ERROR: {
-                return customResponse(GenericErrors.PRISMA_ERROR);
+                return customError(GenericErrors.PRISMA_ERROR);
             }
             default: {
                 logError({
@@ -117,7 +117,7 @@ export const action: ActionFunction = async ({ request }) => {
                     error,
                 });
 
-                return customResponse(GenericErrors.UNKNOWN_ERROR);
+                return customError(GenericErrors.UNKNOWN_ERROR);
             }
         }
     }

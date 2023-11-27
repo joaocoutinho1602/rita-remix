@@ -1,12 +1,8 @@
-import { useMemo, useState } from 'react';
-
-import dayjs from 'dayjs';
+import { useState } from 'react';
 
 import type { LoaderFunction } from '@remix-run/node';
 import { json, redirect } from '@remix-run/node';
-import { Link, Outlet, useNavigate, useTransition } from '@remix-run/react';
-
-import { getSession } from '~/utils/server/sessions';
+import { Link, Outlet, useLoaderData, useNavigate } from '@remix-run/react';
 
 import {
     AppShell,
@@ -19,9 +15,7 @@ import {
     Navbar,
     ScrollArea,
 } from '@mantine/core';
-
 import { useLocalStorage } from '@mantine/hooks';
-
 import {
     IconAdjustmentsHorizontal,
     IconCalendar,
@@ -33,37 +27,230 @@ import {
     IconUsers,
 } from '@tabler/icons';
 
-import { AddPatientModal } from '~/components/AddPatientModal';
+import {
+    ErrorCodes,
+    GenericErrors,
+    getURL,
+    googleCalendarAPI,
+    logError,
+    setGoogleCredentials,
+} from '~/utils/common';
+import type {
+    CalendarsObject,
+    EnhancedLocation,
+    EnhancedPatient,
+    EnhancedService,
+} from '~/utils/common/types';
+import { db, getSession, SessionData } from '~/utils/server';
 
-import { ErrorCodes } from '~/utils/common';
+import { AddPatientModal } from '~/components/AddPatientModal';
+import { CreateAppointmentModal } from '~/components/CreateAppointmentModal';
 
 import styles from '~/styles/office.css';
+import { useOutletTransitioning } from '~/utils/client/hooks';
 
 export function links() {
     return [{ rel: 'stylesheet', href: styles }];
 }
 
+export type OfficeLoaderData = {
+    googleDataId?: string;
+    googleAuthorizationUrl?: string;
+    calendars: CalendarsObject;
+    loaderLocations: EnhancedLocation[];
+    loaderServices: EnhancedService[];
+    patients: EnhancedPatient[];
+};
+
 export const loader: LoaderFunction = async ({ request }) => {
-    const session = await getSession(request.headers.get('Cookie'));
+    try {
+        const session = await getSession(request.headers.get('Cookie'));
 
-    if (!session.has('userEmail')) {
-        return redirect('/login');
+        const email = session.get(SessionData.EMAIL);
+        const googleRefreshToken = session.get(
+            SessionData.GOOGLE_REFRESH_TOKEN
+        );
+
+        if (!email?.length) {
+            return redirect('/login');
+        }
+
+        if (!googleRefreshToken?.length) {
+            /**
+             * If the user is authenticated but we don't have their Google refresh token, we have to generate the Google authentication URL
+             */
+            const response = await fetch(
+                `${getURL()}/api/google/generateAuthUrl`,
+                {
+                    method: 'GET',
+                }
+            );
+
+            const { googleAuthorizationUrl } = await response.json();
+
+            return json({ googleAuthorizationUrl });
+        }
+
+        setGoogleCredentials(googleRefreshToken);
+
+        /**
+         * First we get all the Google calendars on Google and on Medici
+         */
+        const allCalendarsPromise = googleCalendarAPI.calendarList.list();
+
+        const doctorPromise = db.doctor
+            .findUnique({
+                where: { userEmail: email },
+                select: {
+                    patients: {
+                        select: {
+                            id: true,
+                            client: {
+                                select: {
+                                    user: {
+                                        select: {
+                                            firstName: true,
+                                            lastName: true,
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                    locations: {
+                        include: {
+                            servicesOnLocationsWithPricing: {
+                                include: {
+                                    location: true,
+                                    service: true,
+                                    pricing: true,
+                                },
+                            },
+                        },
+                    },
+                    services: {
+                        include: {
+                            servicesOnLocationsWithPricing: {
+                                include: {
+                                    service: true,
+                                    location: true,
+                                    pricing: true,
+                                },
+                            },
+                        },
+                    },
+                    googleData: {
+                        select: {
+                            id: true,
+                            calendars: {
+                                select: {
+                                    id: true,
+                                    googleCalendarId: true,
+                                    isMediciCalendar: true,
+                                },
+                            },
+                        },
+                    },
+                },
+            })
+            .catch((error) => {
+                logError({
+                    filePath: '/office/settings.tsx',
+                    message: `prisma error - findUnique user where email=${email}`,
+                    error,
+                });
+
+                throw GenericErrors.PRISMA_ERROR;
+            });
+
+        const [allCalendars, doctor] = await Promise.all([
+            allCalendarsPromise,
+            doctorPromise,
+        ]);
+
+        const selectedCalendars = doctor?.googleData?.calendars;
+
+        /**
+         * We then extend the information of every Google calendar with wether they've been selected by the Doctor to be shown and set the flag for which is the Medici calendar
+         */
+        const calendarsArray = (allCalendars?.data?.items || []).map(
+            ({ id, summary, description, backgroundColor }) => {
+                const selectedCalendar = selectedCalendars?.find(
+                    (calendar) => calendar.googleCalendarId === id
+                );
+
+                return {
+                    id,
+                    selected: selectedCalendar ? true : false,
+                    summary,
+                    description,
+                    backgroundColor,
+                    isMediciCalendar: selectedCalendar?.isMediciCalendar,
+                };
+            }
+        );
+
+        const calendarsInitialValue: CalendarsObject = {};
+        /**
+         * We then put the Medici calendar as the head of the list and create an object of calendars by ID
+         */
+        let calendars = calendarsArray
+            .sort((a) => (a.isMediciCalendar ? -1 : 1))
+            .reduce(
+                (acc, curVal) =>
+                    Object.assign({}, acc, {
+                        [curVal.id as string]: curVal,
+                    }),
+                calendarsInitialValue
+            );
+
+        /**
+         * Sort locations by created date ascending and put Online last
+         */
+        const loaderLocations =
+            doctor?.locations
+                ?.sort((a, b) => (a.createdAt > b.createdAt ? 1 : -1))
+                ?.sort((a) => (a.alias === 'Online' ? 1 : -1)) || [];
+        const loaderServices =
+            doctor?.services?.sort((a, b) =>
+                a.createdAt > b.createdAt ? -1 : 1
+            ) || [];
+
+        const patients = doctor?.patients;
+
+        return json({
+            googleDataId: doctor?.googleData?.id,
+            calendars,
+            loaderLocations,
+            loaderServices,
+            patients,
+        });
+    } catch (error) {
+        switch (error) {
+            case GenericErrors.PRISMA_ERROR: {
+                return json({ error: GenericErrors.PRISMA_ERROR });
+            }
+            default: {
+                logError({
+                    filePath: '/office.tsx',
+                    message: 'loader unknown error',
+                    error,
+                });
+
+                return json({ error: GenericErrors.UNKNOWN_ERROR });
+            }
+        }
     }
-
-    /**
-     * TODO
-     * ***
-     *? verificar se o utilizador tem um googleRefreshToken na sessão
-     *? se não tiver, tem de aparecer o prompt da google ao utilizador
-     *? se tiver, podemos apresentar dados dos calendários
-     */
-
-    const data = { error: session.get('error'), env: process.env.NODE_ENV };
-
-    return json(data);
 };
 
 export default function Office() {
+    const { loaderServices, patients } = useLoaderData<OfficeLoaderData>();
+
+    const [burgerOpened, setBurgerOpened] = useState(false);
+    const [isAddPatientModalOpen, setIsAddPatientModalOpen] = useState(false);
+    const [isCreateAppointmentModalOpen, setIsCreateAppointmentModalOpen] =
+        useState(false);
+
     const [, setUserEmailLocalStorage] = useLocalStorage({
         key: 'officeKeepLoggedInUserEmail',
     });
@@ -71,59 +258,8 @@ export default function Office() {
         key: 'officeKeepLoggedInPassword',
     });
 
-    const [burgerOpened, setBurgerOpened] = useState(false);
-    const [isAddPatientModalOpen, setIsAddPatientModalOpen] = useState(false);
-
     const navigate = useNavigate();
-    const transition = useTransition();
-
-    const outletTransitioning = useMemo(() => {
-        /**
-         * This logic controls whether we should show the user the Outlet is loading
-         * It should be replicated everywhere there is a Loader
-         */
-        const routes = ['patients', 'appointments', 'analytics', 'settings'];
-
-        /**
-         * splitPathname[0] will always be ''
-         */
-        const splitPathname = transition.location?.pathname.split('/') || [];
-
-        const isOfficeIndex =
-            splitPathname.length === 2 && splitPathname[1] === 'office';
-
-        if (isOfficeIndex) {
-            /**
-             * If we are in the /office index route, we must control wether we are navigating the calendar
-             */
-            const search = (transition.location?.search || '')
-                .split('?')[1]
-                ?.split('&');
-
-            const selectionDate = search?.[0].split('=')[1];
-
-            if (selectionDate?.length && dayjs(selectionDate).isValid()) {
-                return false;
-            } else {
-                return true;
-            }
-        }
-
-        /**
-         * This ensures we don't display the Loader if we are navigating from
-         * /office/clients/123
-         * to
-         * /office/clients/456
-         */
-        const isOfficeDirectSubroute =
-            splitPathname.length === 3 && routes.includes(splitPathname[2]);
-
-        return transition.state === 'loading' && isOfficeDirectSubroute;
-    }, [
-        transition.location?.pathname,
-        transition.location?.search,
-        transition.state,
-    ]);
+    const outletTransitioning = useOutletTransitioning();
 
     function logout() {
         fetch('/api/logout', { method: 'POST' }).then((response) => {
@@ -147,10 +283,18 @@ export default function Office() {
     return (
         <AppShell
             navbarOffsetBreakpoint="sm"
-            zIndex={999}
             header={
-                <Header height={70} p="md" zIndex={999}>
-                    <Group sx={{ height: '100%' }} px={20} position="apart">
+                <Header zIndex={1} height={60} p="md">
+                    <Group
+                        sx={{
+                            height: '100%',
+                            display: 'flex',
+                            flexDirection: 'row',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                        }}
+                        px={20}
+                    >
                         <MediaQuery
                             largerThan="sm"
                             styles={{ display: 'none' }}
@@ -164,7 +308,7 @@ export default function Office() {
                             />
                         </MediaQuery>
                         <div className="logo">
-                            <IconStethoscope size={40} strokeWidth={1.2} />
+                            <IconStethoscope size={30} strokeWidth={1.2} />
                             <div>MEDICI</div>
                         </div>
                         <div onClick={logout}>Sair</div>
@@ -177,7 +321,7 @@ export default function Office() {
                     hiddenBreakpoint="sm"
                     hidden={!burgerOpened}
                     width={{ sm: 200, lg: 300 }}
-                    zIndex={999}
+                    zIndex={1}
                 >
                     <ScrollArea style={{ height: '100%' }} type="never">
                         <Navbar.Section>
@@ -203,6 +347,9 @@ export default function Office() {
                                         className="quickActionText"
                                         onClick={() => {
                                             toggleBurger();
+                                            setIsCreateAppointmentModalOpen(
+                                                true
+                                            );
                                         }}
                                     >
                                         Agendar consulta
@@ -278,11 +425,24 @@ export default function Office() {
                     <Loader />
                 </div>
             ) : (
-                <Outlet />
+                <Outlet
+                    context={{
+                        services:
+                            loaderServices as unknown as EnhancedService[],
+                        patients,
+                    }}
+                />
             )}
             <AddPatientModal
                 open={isAddPatientModalOpen}
                 toggle={setIsAddPatientModalOpen}
+            />
+            <CreateAppointmentModal
+                open={isCreateAppointmentModalOpen}
+                toggle={setIsCreateAppointmentModalOpen}
+                toggleAddPatientModal={setIsAddPatientModalOpen}
+                services={loaderServices as unknown as EnhancedService[]}
+                patients={patients}
             />
         </AppShell>
     );

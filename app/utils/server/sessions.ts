@@ -14,6 +14,7 @@ const { getSession, commitSession, destroySession } =
     });
 
 const SessionData = {
+    ID: 'userId',
     EMAIL: 'userEmail',
     GOOGLE_REFRESH_TOKEN: 'userGoogleRefreshToken',
 }

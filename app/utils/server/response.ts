@@ -1,4 +1,4 @@
-import { ErrorCodes } from '~/utils/common';
+import { ErrorCodes, GenericErrors } from '~/utils/common';
 
 /**
  * Builds a custom response (defaults to an error response using the custom error code)
@@ -6,8 +6,8 @@ import { ErrorCodes } from '~/utils/common';
  * @param param0
  * @returns
  */
-export const customResponse = (
-    statusText: string,
+export const customError = (
+    statusText: string = GenericErrors.SERVER_ERROR,
     status: number = ErrorCodes.CUSTOM_ERROR
 ) =>
     new Response(undefined, {

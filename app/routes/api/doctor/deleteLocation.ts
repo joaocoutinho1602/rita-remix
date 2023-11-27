@@ -1,14 +1,11 @@
 import type { ActionFunction } from '@remix-run/router';
 import { GenericErrors, logError } from '~/utils/common';
-import { customResponse, db, getSession, SessionData } from '~/utils/server';
+import { customError, db, isUnauthorized } from '~/utils/server';
 
 export const action: ActionFunction = async ({ request }) => {
     try {
-        const session = await getSession(request.headers.get('Cookie'));
-        const email = session.get(SessionData.EMAIL);
-
-        if (!(email?.length > 0)) {
-            throw GenericErrors.UNAUTHORIZED;
+        if (await isUnauthorized(request)) {
+            return customError(GenericErrors.UNAUTHORIZED);
         }
 
         const url = new URL(request.url);
@@ -19,28 +16,25 @@ export const action: ActionFunction = async ({ request }) => {
             .catch((error) => {
                 logError({
                     filePath: '/api/doctor/deleteLocation',
-                    message: `prisma error ~ DELETE FROM Location WHERE (locationId=${locationId})`,
+                    message: `prisma error ~ delete location where id=${locationId}`,
                     error,
                 });
 
                 throw GenericErrors.PRISMA_ERROR;
             });
+
+        return 'OK';
     } catch (error) {
         switch (error) {
-            case GenericErrors.PRISMA_ERROR: {
-                return customResponse(GenericErrors.PRISMA_ERROR);
-            }
-            case GenericErrors.UNAUTHORIZED: {
-                return customResponse(GenericErrors.UNAUTHORIZED);
-            }
+            case GenericErrors.PRISMA_ERROR:
             default: {
                 logError({
                     filePath: '/api/doctor/deleteLocation',
-                    message: 'unknown action error',
+                    message: GenericErrors.UNKNOWN_ERROR,
                     error,
                 });
 
-                return customResponse(GenericErrors.UNKNOWN_ERROR);
+                return customError();
             }
         }
     }

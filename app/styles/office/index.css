@@ -35,6 +35,19 @@
     max-width: 70vw;
 }
 
+.eventCardHeaderContainer {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+}
+
+.actions {
+    display: flex;
+    flex-direction: row;
+}
+
 .colorSwatchTimeContainer {
     display: flex;
     flex-direction: row;

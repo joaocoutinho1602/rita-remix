@@ -1,0 +1,32 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.headerLoaderContainer {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.appointments {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-width: 90vw;
+    max-width: 90vw;
+}
+
+.appointmentCardContainer {
+    min-width: 70vw;
+    max-width: 70vw;
+}
+
+.info {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    grid-gap: 0.5rem;
+}

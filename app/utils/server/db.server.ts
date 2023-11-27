@@ -1,4 +1,32 @@
+import type { Prisma } from '@prisma/client';
 import { PrismaClient } from '@prisma/client';
+
+import { prettyJSON } from '../common/functions';
+
+const loggingMiddleware = (shouldLog: boolean) => async (
+    params: Prisma.MiddlewareParams,
+    next: (params: Prisma.MiddlewareParams) => Promise<any>
+) => {
+    try {
+        const before = Date.now();
+
+        const result = await next(params);
+
+        const after = Date.now();
+
+        if (shouldLog === true) {
+            console.log(
+                `🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀 Query ${params.model}.${params.action} took ${
+                    after - before
+                }ms`
+            );
+        }
+
+        return result;
+    } catch (error) {
+        console.log('🚀 ~ file: db.server.ts:7 ~ params', prettyJSON(params));
+    }
+};
 
 let db: PrismaClient;
 
@@ -17,5 +45,9 @@ if (process.env.NODE_ENV === 'production') {
     }
     db = global.__db;
 }
+
+const shouldLog = process.env.PERFORMANCE_LOGGING === 'true';
+
+db.$use(loggingMiddleware(shouldLog));
 
 export { db };

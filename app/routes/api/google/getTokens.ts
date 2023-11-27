@@ -11,7 +11,7 @@ import {
 } from '~/utils/common';
 import {
     commitSession,
-    customResponse,
+    customError,
     db,
     getSession,
     SessionData,
@@ -199,7 +199,7 @@ export const loader: LoaderFunction = async ({ request }) => {
                 redirect(`/office?googleError=true`);
             }
             case GenericErrors.PRISMA_ERROR: {
-                return customResponse(GenericErrors.PRISMA_ERROR);
+                return customError(GenericErrors.PRISMA_ERROR);
             }
             default: {
                 logError({
@@ -208,7 +208,7 @@ export const loader: LoaderFunction = async ({ request }) => {
                     error: error,
                 });
 
-                return customResponse(GenericErrors.UNKNOWN_ERROR);
+                return customError(GenericErrors.UNKNOWN_ERROR);
             }
         }
     }

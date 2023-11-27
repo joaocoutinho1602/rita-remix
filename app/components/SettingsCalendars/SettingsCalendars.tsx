@@ -1,43 +1,42 @@
-import { Button, Checkbox, ColorSwatch } from '@mantine/core';
-import { showNotification } from '@mantine/notifications';
-import { useFetcher } from '@remix-run/react';
-import { IconAlertTriangle, IconCheck, IconX } from '@tabler/icons';
-import { isEqual } from 'lodash';
 import { useMemo, useState } from 'react';
 
-import type {
-    CalendarsObject,
-    CheckboxesObject,
-} from '~/routes/office/settings';
+import { useFetcher } from '@remix-run/react';
+
+import { isEqual } from 'lodash';
+
+import { Button, Checkbox, ColorSwatch } from '@mantine/core';
+import { showNotification } from '@mantine/notifications';
+import { IconAlertTriangle, IconCheck, IconX } from '@tabler/icons';
 
 import type { CustomFormEvent } from '~/utils/client';
 import { handleError } from '~/utils/client';
+import type { CalendarsObject, CheckboxesObject } from '~/utils/common/types';
 
 type SettingsCalendarProps = {
     googleAuthorizationUrl?: string;
     googleDataId?: string;
     calendars?: CalendarsObject;
-    loaderCheckboxes?: CheckboxesObject;
+    checkboxes?: CheckboxesObject;
 };
 
 export function SettingsCalendars({
     calendars,
     googleAuthorizationUrl,
     googleDataId,
-    loaderCheckboxes = {},
+    checkboxes = {},
 }: SettingsCalendarProps) {
     const [errorCount, setErrorCount] = useState(0);
     const [startingCheckboxes, setStartingCheckboxes] = useState<{
         [key: string]: boolean;
-    }>(loaderCheckboxes);
-    const [checkboxes, setCheckboxes] = useState<{ [key: string]: boolean }>(
-        loaderCheckboxes
-    );
+    }>(checkboxes);
+    const [currentCheckboxes, setCurrentCheckboxes] = useState<{
+        [key: string]: boolean;
+    }>(checkboxes);
     const [savingCheckboxes, setSavingCheckboxes] = useState(false);
 
     const saveCheckboxesDisabled = useMemo(
-        () => isEqual(startingCheckboxes || {}, checkboxes),
-        [checkboxes, startingCheckboxes]
+        () => isEqual(startingCheckboxes || {}, currentCheckboxes),
+        [currentCheckboxes, startingCheckboxes]
     );
 
     const settingsFetcher = useFetcher();
@@ -50,7 +49,7 @@ export function SettingsCalendars({
         await fetch('/api/doctor/showCalendars', {
             method: 'POST',
             body: JSON.stringify({
-                checkboxes,
+                checkboxes: currentCheckboxes,
                 googleDataId,
             }),
         })
@@ -91,7 +90,7 @@ export function SettingsCalendars({
                 }
             })
             .finally(() => {
-                setStartingCheckboxes(checkboxes);
+                setStartingCheckboxes(currentCheckboxes);
                 setSavingCheckboxes(false);
             });
     }
@@ -129,13 +128,19 @@ export function SettingsCalendars({
                             }) => (
                                 <div key={id} className="row">
                                     <Checkbox
-                                        checked={checkboxes[id]}
+                                        checked={currentCheckboxes[id]}
                                         disabled={isMediciCalendar}
                                         onChange={() =>
-                                            setCheckboxes(
-                                                Object.assign({}, checkboxes, {
-                                                    [id]: !checkboxes[id],
-                                                })
+                                            setCurrentCheckboxes(
+                                                Object.assign(
+                                                    {},
+                                                    currentCheckboxes,
+                                                    {
+                                                        [id]: !currentCheckboxes[
+                                                            id
+                                                        ],
+                                                    }
+                                                )
                                             )
                                         }
                                     />

@@ -54,3 +54,21 @@
     align-items: center;
     height: 50vh;
 }
+
+.createAppointmentForm {
+    display: grid;
+    grid-template-columns: 1;
+    grid-template-rows: auto;
+    row-gap: 1rem;
+    grid-template-areas:
+        'createAppointmentFormPatients'
+        'createAppointmentFormServices'
+        'createAppointmentFormLocations'
+        'createAppointmentFormPriceDuration';
+}
+
+.createAppointmentFormPriceDuration {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    column-gap: 2rem;
+}

@@ -3,7 +3,13 @@ import { useMemo, useState } from 'react';
 import type { LoaderFunction } from '@remix-run/node';
 import { json } from '@remix-run/node';
 import { redirect } from '@remix-run/node';
-import { useLoaderData, useNavigate, useTransition } from '@remix-run/react';
+import {
+    useLoaderData,
+    useLocation,
+    useNavigate,
+    useOutletContext,
+    useTransition,
+} from '@remix-run/react';
 
 import dayjs from 'dayjs';
 import 'dayjs/locale/pt';
@@ -12,26 +18,33 @@ import { uniqBy } from 'lodash';
 import { Card, ColorSwatch, Indicator, Loader, Space } from '@mantine/core';
 import { Calendar } from '@mantine/dates';
 
-import { db, getSession, SessionData } from '~/utils/server';
+import { ConvertEventModal } from '~/components/ConvertEventModal';
+import { DeleteAppointmentModal } from '~/components/DeleteAppointmentModal';
 
+import type {
+    EnhancedEvent,
+    EnhancedPatient,
+    EnhancedService,
+} from '~/utils/common/types';
 import {
     GenericErrors,
     getURL,
     googleAuthClient,
     googleCalendarAPI,
     GoogleErrors,
+    getSelectionDate,
     logError,
     setGoogleCredentials,
 } from '~/utils/common';
-
-import styles from '~/styles/office/index.css';
-
+import { db, getSession, SessionData } from '~/utils/server';
 import type { LoaderEvents } from '~/utils/server/office.index.loader.server';
 import {
     eventsByDay,
     getEventsTimeSlice,
-    mapEventsWithColor,
+    mapEvents,
 } from '~/utils/server/office.index.loader.server';
+
+import styles from '~/styles/office/index.css';
 
 export function links() {
     return [{ rel: 'stylesheet', href: styles }];
@@ -74,6 +87,15 @@ export const loader: LoaderFunction = async ({ request }) => {
                     doctor: {
                         select: {
                             googleData: { select: { calendars: true } },
+                            appointments: {
+                                select: {
+                                    id: true,
+                                    googleEventId: true,
+                                    date: true,
+                                    location: true,
+                                    service: true,
+                                },
+                            },
                         },
                     },
                 },
@@ -88,12 +110,12 @@ export const loader: LoaderFunction = async ({ request }) => {
                 throw GenericErrors.PRISMA_ERROR;
             });
 
-        const userCalendars = user?.doctor?.googleData?.calendars || [];
-
-        const [timeMin, timeMax] = getEventsTimeSlice(request.url);
+        const userCalendars = (user?.doctor?.googleData?.calendars || []).sort(
+            (a) => (a.isMediciCalendar ? -1 : 1)
+        );
 
         const allCalendarsPromise = googleCalendarAPI.calendarList
-            .list({ auth: googleAuthClient })
+            .list()
             .catch(async (error) => {
                 logError({
                     filePath: '/office/index.tsx',
@@ -105,7 +127,7 @@ export const loader: LoaderFunction = async ({ request }) => {
             });
 
         const allColorsPromise = googleCalendarAPI.colors
-            .get({ auth: googleAuthClient })
+            .get()
             .catch(async (error) => {
                 logError({
                     filePath: '/office/index.tsx',
@@ -115,6 +137,8 @@ export const loader: LoaderFunction = async ({ request }) => {
 
                 throw GoogleErrors.ERROR_FETCHING_EVENTS;
             });
+
+        const [timeMin, timeMax] = getEventsTimeSlice(request.url);
 
         const allCalendarsEventsPromises = userCalendars.map(
             ({ googleCalendarId }) =>
@@ -143,19 +167,19 @@ export const loader: LoaderFunction = async ({ request }) => {
                 ...allCalendarsEventsPromises,
             ]);
 
-        const eventsWithColor = mapEventsWithColor(
+        const mappedEvents = mapEvents(
             userCalendars,
             allCalendars,
             allCalendarsEvents,
             allColors
         ).filter((event) => event.organizer);
 
-        const uniqueEventsWithColor = uniqBy(
-            eventsWithColor,
+        const uniqueEvents = uniqBy(
+            mappedEvents,
             (event) => event.start?.dateTime || event.start?.date
         );
 
-        const events = eventsByDay(uniqueEventsWithColor);
+        const events = eventsByDay(uniqueEvents);
 
         return json({ events });
     } catch (error) {
@@ -181,7 +205,7 @@ export const loader: LoaderFunction = async ({ request }) => {
  */
 function makeActualDate(date: Date) {
     const hoursToAdd = Math.floor(dayjs(date).utcOffset() / 60);
-    return dayjs(date).add(hoursToAdd, 'hour').toISOString().split('T')[0];
+    return dayjs(date).add(hoursToAdd, 'hour').format('YYYY-MM-DD');
 }
 
 export default function OfficeIndex() {
@@ -191,10 +215,15 @@ export default function OfficeIndex() {
         error?: string;
     }>();
 
-    const [value, setValue] = useState<Date | null>(null);
+    const [value, setValue] = useState<Date | null>(new Date());
 
+    const location = useLocation();
     const navigate = useNavigate();
     const transition = useTransition();
+    const { services, patients } = useOutletContext<{
+        services: EnhancedService[];
+        patients: EnhancedPatient[];
+    }>();
 
     const loadingEvents = useMemo((): boolean => {
         const queryParams = transition.location?.search
@@ -253,14 +282,25 @@ export default function OfficeIndex() {
                         const actualDate = makeActualDate(date);
                         const numberOfEvents = events?.[actualDate]?.length;
 
+                        const selectionDate = getSelectionDate(location);
+
+                        const indicatorColor =
+                            dayjs(actualDate).month() ===
+                            (selectionDate.length
+                                ? dayjs(selectionDate).month()
+                                : dayjs().month())
+                                ? '#868e96'
+                                : '#BDBDBD';
+
                         return (
                             <Indicator
                                 size={16}
-                                color="gray"
+                                color={indicatorColor}
                                 disabled={numberOfEvents === undefined}
                                 label={`${numberOfEvents}`}
                                 position="top-end"
                                 offset={7}
+                                zIndex={0}
                             >
                                 <div>{date.getDate()}</div>
                             </Indicator>
@@ -273,11 +313,16 @@ export default function OfficeIndex() {
                 <div className="events">
                     <br />
                     {events?.[makeActualDate(value)].map(
-                        (
-                            { id, summary, start, end, color, location },
-                            index,
-                            array
-                        ) => {
+                        (event, index, array) => {
+                            const {
+                                id,
+                                summary,
+                                start,
+                                end,
+                                color,
+                                location,
+                                mediciEventId,
+                            } = event;
                             const startTime = dayjs(start?.dateTime).format(
                                 'HH:mm'
                             );
@@ -291,14 +336,30 @@ export default function OfficeIndex() {
                                         shadow="0px 0px 10px 5px rgba(0,0,0,0.1)"
                                         radius="md"
                                     >
-                                        <div className="colorSwatchTimeContainer">
-                                            {color.length ? (
-                                                <ColorSwatch
-                                                    size={20}
-                                                    color={color}
+                                        <div className="eventCardHeaderContainer">
+                                            <div className="colorSwatchTimeContainer">
+                                                {color.length ? (
+                                                    <ColorSwatch
+                                                        size={20}
+                                                        color={color}
+                                                    />
+                                                ) : null}
+                                                <div className="eventTime">{`${startTime} - ${endTime}`}</div>
+                                            </div>
+                                            <div className="actions">
+                                                {mediciEventId ? null : (
+                                                    <ConvertEventModal
+                                                        event={event}
+                                                        services={services}
+                                                        patients={patients}
+                                                    />
+                                                )}
+                                                <DeleteAppointmentModal
+                                                    event={
+                                                        event as unknown as EnhancedEvent
+                                                    }
                                                 />
-                                            ) : null}
-                                            <div className="eventTime">{`${startTime} - ${endTime}`}</div>
+                                            </div>
                                         </div>
                                         <div>{summary}</div>
                                         <div className="locationText">

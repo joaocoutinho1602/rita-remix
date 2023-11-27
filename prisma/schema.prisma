@@ -11,49 +11,159 @@ generator client {
   provider = "prisma-client-js"
 }
 
-// A user is someone that is registered on the platform. A user can be a Doctor, a Client, or both, but only a maximum of one of each.
+// A User is someone that is registered on the platform. A User can be a Doctor, a Client, or both, but only a maximum of one of each.
 model User {
+  id        String   @id @default(uuid())
   email     String   @unique
   password  String
+  phone     String   @default("")
   firstName String
   lastName  String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   doctor    Doctor?
   client    Client?
+
+  @@index([email])
 }
 
-// A Doctor is a User that uses the platform in order to schedule and manage Appointments FOR their Patients. A Doctor can have many Patients, but only one Patient for each Client on the platform. They also have a list of Locations
+// A Client is a User that uses the platform in order to schedule and manage Appointments with their Doctors. For every unique Doctor with whom a Client schedules an Appointment, a Patient related to the Client's User is created and associated with the Doctor. For this reason, a Client can have many Patients, one for each Doctor with whom they've had an Appointment.
+model Client {
+  id        String    @id @default(uuid())
+  user      User      @relation(fields: [userEmail], references: [email])
+  userEmail String    @unique
+  patients  Patient[]
+
+  @@index([userEmail])
+}
+
+// A Doctor is a User that uses the platform in order to schedule and manage Appointments for their Patients. A Doctor can have many Patients, but only one Patient for each Client on the platform. They also have lists of ServiceTypes, Locations, and Services.
 model Doctor {
-  id                String      @id @unique @default(uuid())
-  user              User        @relation(fields: [userEmail], references: [email])
-  userEmail         String      @unique
+  id                String        @id @default(uuid())
+  user              User          @relation(fields: [userEmail], references: [email])
+  userEmail         String        @unique
   doctorSpecialtyId String
   googleData        GoogleData?
-  patients          Patient[]
+  services          Service[]
   locations         Location[]
+  appointments      Appointment[]
+  patients          Patient[]
+
+  @@index([userEmail])
 }
 
-// A Location is a place where the Doctor can give Appointments. It is composed by a full address, which represents the physical location in the real world, and also an alias, which is a name that the Doctor can choose to call it for convenience (e.g. the address is "Rua Luís António Correia, nº 10, 6º frente, 4715-310, Braga", and the alias is simply "Braga"). There is a Location which is created and associated to each Doctor when creating an account, which is Online
-model Location {
-  id          String @id @default(uuid())
-  address     String @default("")
-  alias       String
-  Doctor      Doctor @relation(fields: [doctorEmail], references: [userEmail])
-  doctorEmail String
+// A Service is a specific job performed by a Doctor in their Appointments at their Locations. Examples: for a psychologist, this can be an individual therapy session, a couples therapy session, or a sexology therapy session; for a dentist, this can be a tooth removal, applying braces, or a cleanup. Doctors can create Services, and when doing so they associate them with one or more already existing Locations, or they create new ones that can be reused later. A service also requires at least one Pricing, and can have a Pricing for each Location at which a Service is provided.
+model Service {
+  id                             String                           @id @default(uuid())
+  name                           String
+  description                    String
+  duration                       Int
+  doctor                         Doctor                           @relation(fields: [doctorEmail], references: [userEmail])
+  doctorEmail                    String
+  servicesOnLocationsWithPricing ServicesOnLocationsWithPricing[]
+  appointments                   Appointment[]
+  createdAt                      DateTime                         @default(now())
+  updatedAt                      DateTime                         @updatedAt
 
+  @@index([doctorEmail])
+}
+
+model ServicesOnLocationsWithPricing {
+  id         String   @id @default(uuid())
+  service    Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  serviceId  String
+  location   Location @relation(fields: [locationId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  locationId String
+  pricing    Pricing?
+
+  @@index([serviceId])
+  @@index([locationId])
+  @@index([serviceId, locationId])
+}
+
+// A Location is a place where the Doctor performs their Services. It is composed by a full address, which represents the physical location in the real world, and also an alias, which is a name that the Doctor can choose to call it for convenience (e.g. the address is "Rua Luís António Correia, nº 10, 6º frente, 4715-310, Braga", and the alias is simply "Braga"). There is a Location which is created and associated to each Doctor when creating an account, which is Online.
+model Location {
+  id                             String                           @id @default(uuid())
+  alias                          String
+  address                        String                           @default("")
+  doctor                         Doctor                           @relation(fields: [doctorEmail], references: [userEmail])
+  doctorEmail                    String
+  servicesOnLocationsWithPricing ServicesOnLocationsWithPricing[]
+  appointments                   Appointment[]
+  createdAt                      DateTime                         @default(now())
+  updatedAt                      DateTime                         @updatedAt
+
+  @@index([doctorEmail])
+}
+
+// A Pricing represents the price of a Service at one of the Service's Locations. A single Service has as many Pricings as the Locations at which the Doctor performs their Servicez. In this way the Doctor can differentiate prices of ServiceTypes at different Locations.
+// A Doctor cannot directly create a Pricing. Pricings are created when creating Services.
+model Pricing {
+  id                               String                         @id @default(uuid())
+  price                            Float
+  servicesOnLocationsWithPricing   ServicesOnLocationsWithPricing @relation(fields: [servicesOnLocationsWithPricingId], references: [id], onDelete: Cascade)
+  servicesOnLocationsWithPricingId String                         @unique
+  createdAt                        DateTime                       @default(now())
+  updatedAt                        DateTime                       @updatedAt
+}
+
+// An Appointment is an instantiation of a Service at a given time with one or more Patients. Its price is that of the Pricing for the Service performed at the Location of the Appointment.
+model Appointment {
+  id                     String                   @id @default(uuid())
+  googleEventId          String                   @default("")
+  date                   DateTime
+  duration               Int
+  price                  Float
+  service                Service                  @relation(fields: [serviceId], references: [id])
+  serviceId              String
+  location               Location                 @relation(fields: [locationId], references: [id])
+  locationId             String
+  patientsOnAppointments PatientsOnAppointments[]
+  doctor                 Doctor                   @relation(fields: [doctorId], references: [id])
+  doctorId               String
+  createdAt              DateTime                 @default(now())
+  updatedAt              DateTime                 @updatedAt
+
+  @@index([serviceId])
+  @@index([locationId])
+  @@index([doctorId])
+}
+
+model PatientsOnAppointments {
+  id            String      @id @default(uuid())
+  appointment   Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  appointmentId String
+  patient       Patient     @relation(fields: [patientId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  patientId     String
+
+  @@index([appointmentId])
+  @@index([patientId])
+}
+
+// A Patient is an association of a Client with a Doctor. A Client can have many patients, and every Patient is related to a single Client and a single Doctor.
+model Patient {
+  id                     String                   @id @default(uuid())
+  client                 Client                   @relation(fields: [userEmail], references: [userEmail])
+  userEmail              String
+  doctor                 Doctor                   @relation(fields: [doctorEmail], references: [userEmail])
+  doctorEmail            String
+  patientsOnAppointments PatientsOnAppointments[]
+  createdAt              DateTime                 @default(now())
+  updatedAt              DateTime                 @updatedAt
+
+  @@index([userEmail])
   @@index([doctorEmail])
 }
 
 // A DoctorSpecialty is a specialty that a Doctor practices and for which it can schedule Appointments on the platform. These are added manually to the platform and the User, when registering as a Doctor, can select one for themselves.
 model DoctorSpecialty {
-  id   String @id @unique @default(uuid())
+  id   String @id @default(uuid())
   name String
 }
 
 // Data pertaining to the Google account of a given Doctor
 model GoogleData {
-  id           String     @id @unique @default(uuid())
+  id           String     @id @default(uuid())
   doctor       Doctor     @relation(fields: [doctorId], references: [id])
   doctorId     String     @unique
   refreshToken String
@@ -62,7 +172,7 @@ model GoogleData {
 
 // A given Google calendar of a Doctor's GoogleData
 model Calendar {
-  id               String      @id @unique @default(uuid())
+  id               String      @id @default(uuid())
   googleCalendarId String
   isMediciCalendar Boolean     @default(false)
   GoogleData       GoogleData? @relation(fields: [googleDataId], references: [id])
@@ -70,49 +180,3 @@ model Calendar {
 
   @@index([googleDataId])
 }
-
-// A Client is a User that uses the platform in order to schedule and manage Appointments WITH their Doctors. For every unique Doctor with whom a Client schedules an Appointment, a Patient related to the Client's User is created and associated with the Doctor. For this reason, a Client can have many Patients, one for each Doctor with whom they've had an Appointment.
-model Client {
-  user      User      @relation(fields: [userEmail], references: [email])
-  userEmail String    @unique
-  patients  Patient[]
-}
-
-// A Patient is an association of a Client with a Doctor. A Client can have many patients, and every Patient is related to a single Client and a single Doctor.
-model Patient {
-  id          String @unique @default(uuid())
-  userEmail   String
-  client      Client @relation(fields: [userEmail], references: [userEmail])
-  ofDoctor    Doctor @relation(fields: [doctorEmail], references: [userEmail])
-  doctorEmail String
-
-  @@index([userEmail])
-  @@index([doctorEmail])
-}
-
-// model Appointment {
-//   id       String          @id @unique @default(uuid())
-//   date     DateTime        @default(now())
-//   type     AppointmentType @default(INVIDIVUAL)
-//   duration Int             @default(6000) //60 minutes
-//   location String          @default("")
-// }
-
-// enum AppointmentType {
-//   INVIDIVUAL
-//   COUPLES
-// }
-
-// model Client {
-//   id      String     @id @unique @default(uuid())
-//   type    ClientType @default(INDIVIDUAL)
-//   name    String     @default("")
-//   email   String     @default("")
-//   phone   String     @default("")
-//   address String     @default("")
-// }
-
-// enum ClientType {
-//   INDIVIDUAL
-//   COUPLES
-// }

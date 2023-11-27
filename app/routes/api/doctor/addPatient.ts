@@ -1,20 +1,41 @@
 import type { ActionArgs } from '@remix-run/node';
-import { json } from '@remix-run/node';
 
-import { logError, GenericErrors, AddClientErrors } from '~/utils/common';
-import { customResponse, db, getSession, SessionData } from '~/utils/server';
+import type { AddPatientForm } from '~/components/AddPatientModal/AddPatientModal';
+
+import { logError, GenericErrors, AddClientErrors, PatientErrors } from '~/utils/common';
+import {
+    customError,
+    db,
+    getSession,
+    isUnauthorized,
+    SessionData,
+    generatePassword,
+} from '~/utils/server';
 
 export async function action({ request }: ActionArgs) {
     try {
+        if (await isUnauthorized(request)) {
+            return GenericErrors.UNAUTHORIZED;
+        }
+
         const session = await getSession(request.headers.get('Cookie'));
         const doctorEmail = session.get(SessionData.EMAIL);
 
-        const {
-            firstName,
-            lastName,
-            email,
-        }: { firstName: string; lastName: string; email: string } =
+        const { firstName, lastName, email, phone }: AddPatientForm =
             await request.json();
+
+        if (!firstName.length) {
+            return customError(PatientErrors.MISSING_INPUT_FIRSTNAME);
+        }
+        if (!lastName.length) {
+            return customError(PatientErrors.MISSING_INPUT_LASTNAME);
+        }
+        if (!email.length) {
+            return customError(PatientErrors.MISSING_INPUT_EMAIL);
+        }
+        if (!phone.length) {
+            return customError(PatientErrors.MISSING_INPUT_PHONE);
+        }
 
         /**
          * First we need to check if there already is a User and/or a Client for this email
@@ -26,12 +47,7 @@ export async function action({ request }: ActionArgs) {
                     select: { email: true },
                 })
                 .catch((error) => {
-                    logError({
-                        filePath: '/office.tsx',
-                        message: `SELECT email FROM User WHERE email={email}`,
-                        error,
-                    });
-
+                    logError({ filePath: '/api/doctor/addPatient', error });
                     throw GenericErrors.PRISMA_ERROR;
                 }),
             db.client
@@ -45,68 +61,49 @@ export async function action({ request }: ActionArgs) {
                     },
                 })
                 .catch((error) => {
-                    logError({
-                        filePath: '/office.tsx',
-                        message: `SELECT (userEmail, patients) FROM Client WHERE userEmail={email}`,
-                        error,
-                    });
-
+                    logError({ filePath: '/api/doctor/addPatient', error });
                     throw GenericErrors.PRISMA_ERROR;
                 }),
         ]);
 
         /**
-         * If there is no User, we generate a password using random.org and then create the User and send them the password
+         * If there already is a Patient registered for this Client and associated with this Doctor, then there's nothing to do
+         */
+        if (
+            client?.patients.find(
+                ({ doctorEmail: thisDoctorEmail }) =>
+                    thisDoctorEmail === doctorEmail
+            )
+        ) {
+            throw AddClientErrors.IS_ALREADY_PATIENT;
+        }
+
+        /**
+         * If there is no User, we generate a password and then create the User and send them the password
          */
         if (!user?.email) {
-            const password = await fetch(
-                'https://www.random.org/strings/?num=1&len=10&digits=on&upperalpha=on&loweralpha=on&unique=on&format=plain&rnd=new',
-                { method: 'GET' }
-            )
-                .then(async (response) => {
-                    const data = await response.body?.getReader()?.read();
+            const password = generatePassword();
 
-                    const utf8Decoder = new TextDecoder('utf-8');
+            await fetch('/api/email/password', {
+                body: JSON.stringify({
+                    email,
+                    firstName,
+                    lastName,
+                    password,
+                }),
+            }).catch(() => {
+                return customError(GenericErrors.NODEMAILER_ERROR);
+            });
 
-                    const password = utf8Decoder.decode(data?.value) || '';
-
-                    return password;
+            user = await db.user
+                .create({
+                    data: { email, firstName, lastName, password, phone },
+                    select: { email: true },
                 })
                 .catch((error) => {
-                    logError({
-                        filePath: '/office.tsx',
-                        message: 'error fetching string from random.org',
-                        error,
-                    });
-
-                    throw GenericErrors.UNKNOWN_ERROR;
+                    logError({ filePath: '/api/doctor/addPatient', error });
+                    throw GenericErrors.PRISMA_ERROR;
                 });
-
-            [user] = await Promise.all([
-                db.user
-                    .create({
-                        data: { email, firstName, lastName, password },
-                        select: { email: true },
-                    })
-                    .catch((error) => {
-                        logError({
-                            filePath: '/office.tsx',
-                            message: `prisma error ~ INSERT INTO User (firstName, lastName, email, password) VALUES (${firstName}, ${lastName}, ${email}, ${password})`,
-                            error,
-                        });
-
-                        throw GenericErrors.PRISMA_ERROR;
-                    }),
-                await fetch('/api/email/doctorCreatedAppointemnt', {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        email,
-                        password,
-                        firstName,
-                        lastName,
-                    }),
-                }),
-            ]);
         }
 
         /**
@@ -119,26 +116,9 @@ export async function action({ request }: ActionArgs) {
                     select: { userEmail: true, patients: true },
                 })
                 .catch((error) => {
-                    logError({
-                        filePath: '/office.tsx',
-                        message: `prisma error ~ INSERT INTO Client (userEmail) VALUES (${email})`,
-                        error,
-                    });
-
+                    logError({ filePath: '/api/doctor/addPatient', error });
                     throw GenericErrors.PRISMA_ERROR;
                 });
-        }
-
-        /**
-         * If there already is a Patient registered for this Client and associated with this Doctor, then there's nothing to create
-         */
-        if (
-            client?.patients.find(
-                ({ doctorEmail: thisDoctorEmail }) =>
-                    thisDoctorEmail === doctorEmail
-            )
-        ) {
-            throw AddClientErrors.IS_ALREADY_PATIENT;
         }
 
         /**
@@ -150,34 +130,27 @@ export async function action({ request }: ActionArgs) {
                 select: { id: true },
             })
             .catch((error) => {
-                if (error !== GenericErrors.PRISMA_ERROR) {
-                    logError({
-                        filePath: '/office.tsx',
-                        message: `prisma error ~ UPDATE Doctor SET patients=(INSERT INTO Patient (userEmail)) ${doctorEmail}`,
-                        error,
-                    });
-                }
-
+                logError({ filePath: '/api/doctor/addPatient', error });
                 throw GenericErrors.PRISMA_ERROR;
             });
 
-        return json({ message: 'success' });
+        return 'OK';
     } catch (error) {
         switch (error) {
             case AddClientErrors.IS_ALREADY_PATIENT: {
-                return customResponse(AddClientErrors.IS_ALREADY_PATIENT);
+                return customError(AddClientErrors.IS_ALREADY_PATIENT);
             }
             case GenericErrors.PRISMA_ERROR: {
-                return customResponse(GenericErrors.PRISMA_ERROR);
+                return customError(GenericErrors.PRISMA_ERROR);
             }
             default: {
                 logError({
-                    filePath: '/office.tsx',
+                    filePath: '/api/doctor/addPatient',
                     message: 'loader unknown error',
                     error,
                 });
 
-                return json({ error: GenericErrors.UNKNOWN_ERROR });
+                return customError();
             }
         }
     }

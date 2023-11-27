@@ -10,4 +10,6 @@ module.exports = {
     // assetsBuildDirectory: "public/build",
     // serverBuildPath: "api/index.js",
     // publicPath: "/build/",
+    serverDependenciesToBundle: ["@formkit/auto-animate/react"],
+    tailwind: true,
 };

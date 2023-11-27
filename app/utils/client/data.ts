@@ -7,11 +7,8 @@ import {
 } from '@tabler/icons';
 
 export const cv = [
-    'Membro da Ordem dos Psicólogos Portugueses',
-    'Especialista em Psicologia Clínica e da Saúde',
-    'Mestrado em Psicologia, Universidade do Minho',
-    'Especialização em Sexologia Clínica, INSPSIC',
-    'Especialização em Terapia de Casal, INSPSIC',
+    'Acompanhamento Psicológico com Jovens e Adultos',
+    'Consultas Individuais ou de Casal',
 ];
 
 export const services = [

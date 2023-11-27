@@ -1,0 +1,1 @@
+export { DeleteAppointmentModal } from './DeleteAppointmentModal';

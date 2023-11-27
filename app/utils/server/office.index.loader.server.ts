@@ -1,10 +1,11 @@
 import dayjs from 'dayjs';
 
+import type { calendar_v3 } from 'googleapis';
+import type { GaxiosResponse } from 'googleapis-common';
+
 import type { Calendar } from '@prisma/client';
 
-import type { calendar_v3 } from 'googleapis';
-
-import type { GaxiosResponse } from 'googleapis-common';
+import type { EnhancedEvent } from '~/utils/common/types';
 
 /**
  *
@@ -22,36 +23,39 @@ export const getEventsTimeSlice = (requestUrl: string) => {
 
     return [
         dayjs(selection)
-            .subtract(0, 'month')
             .startOf('month')
+            .subtract(1, 'week')
             .add(1, 'hour')
             .toISOString(),
-        dayjs(selection).add(0, 'month').endOf('month').toISOString(),
+        dayjs(selection).endOf('month').add(1, 'week').toISOString(),
     ];
 };
 
-export type GoogleCalendarEventWithColor = {
-    color: string;
-} & calendar_v3.Schema$Event;
 /**
+ * Maps all Google Calendars' events to an array with the event plus their colour as defined with Google and a boolean that tells if the event's calendar is the Medici Calendar
  *
  * @param userCalendars An array with the user's calendar IDs as stored in the DB
  * @param allCalendars An array with all the calendars queried from the Google API
  * @param allCalendarsEvents An array with arrays of events for each Google calendar
  * @param allColors An array with the colors the user defines for their calendars
- * @returns
+ * @returns An array
  */
-export const mapEventsWithColor = (
+export const mapEvents = (
     userCalendars: Calendar[],
     allCalendars: GaxiosResponse<calendar_v3.Schema$CalendarList>,
     allCalendarsEvents: GaxiosResponse<calendar_v3.Schema$Events>[],
     allColors: GaxiosResponse<calendar_v3.Schema$Colors>
-): GoogleCalendarEventWithColor[] =>
+): EnhancedEvent[] =>
     userCalendars.flatMap(({ googleCalendarId }, index) =>
         (allCalendarsEvents[index].data.items || []).map((event) =>
             Object.assign(
                 {},
                 {
+                    mediciCalendarId:
+                        event.extendedProperties?.private?.mediciCalendarId ||
+                        '',
+                    mediciEventId:
+                        event.extendedProperties?.private?.mediciEventId || '',
                     color:
                         event.colorId &&
                         allColors.data.event?.[event.colorId].background?.length
@@ -67,26 +71,23 @@ export const mapEventsWithColor = (
     );
 
 export type LoaderEvents = {
-    [key: string]: GoogleCalendarEventWithColor[];
+    [key: string]: EnhancedEvent[];
 };
 /**
  *
  * @param events An array of Google Calendar events extended with their respective color
  * @returns An object that maps every day with events to its events, e.g. { '2022-12-13': [event1, event2] }
  */
-export const eventsByDay = (
-    events: GoogleCalendarEventWithColor[]
-): LoaderEvents =>
+export const eventsByDay = (events: EnhancedEvent[]): LoaderEvents =>
     events.reduce<LoaderEvents>((acc, event) => {
-        const eventDay =
-            event.start?.date ||
-            dayjs(event.start?.dateTime).toISOString().split('T')[0];
-
+        const eventDay = dayjs(
+            event.start?.date || event.start?.dateTime
+        ).format('YYYY-MM-DD');
         /**
          *? We need to take all the events already assigned to a given day, push the new event into it, and create a new object with the new event assigned to this day
          */
 
-        const dayEvents: GoogleCalendarEventWithColor[] = acc[eventDay] || [];
+        const dayEvents: EnhancedEvent[] = acc[eventDay] || [];
         dayEvents.push(event);
         dayEvents.sort((a, b) =>
             dayjs(a.start?.dateTime || a.start?.date).isBefore(

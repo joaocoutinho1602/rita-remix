@@ -153,6 +153,7 @@ export default function Login() {
             body: JSON.stringify({ email, password, keepLoggedIn }),
         })
             .then(async (response) => {
+                setSending(false);
                 handleError(response);
 
                 flushSync(() => setRedirecting(true));
@@ -208,9 +209,6 @@ export default function Login() {
                         });
                     }
                 }
-            })
-            .finally(() => {
-                setSending(false);
             });
     }
 

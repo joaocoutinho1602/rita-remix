@@ -1,0 +1,11 @@
+.info {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    grid-gap: 0.5rem;
+}
+
+.appointment {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.5rem;
+}

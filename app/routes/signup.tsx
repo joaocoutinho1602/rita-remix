@@ -2,12 +2,7 @@ import { useEffect, useState } from 'react';
 
 import type { LinksFunction, LoaderFunction } from '@remix-run/node';
 import { json } from '@remix-run/node';
-import {
-    Link,
-    useLoaderData,
-    useNavigate,
-    useTransition,
-} from '@remix-run/react';
+import { Link, useLoaderData, useNavigate } from '@remix-run/react';
 
 import { TextInput, Select, Button, Checkbox, Space } from '@mantine/core';
 import { useForm } from '@mantine/form';
@@ -91,13 +86,9 @@ type LoaderType = {
 export default function Signup() {
     const { dropdownEntries, email } = useLoaderData<LoaderType>();
     const navigate = useNavigate();
-    const transition = useTransition();
-
-    const submitting =
-        transition.state === 'submitting' &&
-        transition.submission.formData.get('signupActions') === 'signup';
 
     const [isDoctor, setIsDoctor] = useState(false);
+    const [sending, setSending] = useState(false);
 
     const form = useForm({
         initialValues: {
@@ -155,6 +146,8 @@ export default function Signup() {
             return;
         }
 
+        setSending(true);
+
         await fetch('/api/signup', {
             method: 'POST',
             body: JSON.stringify(form.values),
@@ -192,6 +185,9 @@ export default function Signup() {
                         });
                     }
                 }
+            })
+            .finally(() => {
+                setSending(true);
             });
     }
 
@@ -268,7 +264,7 @@ export default function Signup() {
                         />
                     ) : null}
                     <Button
-                        loading={submitting}
+                        loading={sending}
                         radius="md"
                         size="md"
                         style={classes.sendButton}
